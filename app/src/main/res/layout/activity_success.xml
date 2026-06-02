@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_page"
+    android:gravity="center_horizontal"
+    android:padding="@dimen/page_margin">
+
+    <!-- Success Checkmark Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.2"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Checkmark Badge Circle -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            app:cardCornerRadius="48dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/success_green_light"
+            android:layout_marginBottom="@dimen/spacing_lg">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="✓"
+                android:textColor="@color/success_green"
+                android:textSize="48sp"
+                android:textStyle="bold" />
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaksi Berhasil!"
+            android:textColor="@color/text_dark"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvInvoiceNo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="INV/20260530/0001"
+            android:textColor="@color/text_gray"
+            android:textSize="@dimen/text_body_large"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Details Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.5"
+        app:cardCornerRadius="@dimen/card_radius"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/border_light"
+        app:strokeWidth="1dp"
+        app:cardBackgroundColor="@color/white"
+        android:layout_marginBottom="@dimen/spacing_xxl">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="@dimen/card_padding">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Detail Pembayaran"
+                android:textColor="@color/text_dark"
+                android:textSize="@dimen/text_title_medium"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/spacing_lg" />
+
+            <!-- Customer -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/spacing_md">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Pelanggan" android:textColor="@color/text_light" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/tvCustomerName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_dark" android:textStyle="bold" android:textSize="@dimen/text_body_large" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border_light" android:layout_marginBottom="@dimen/spacing_md" />
+
+            <!-- Total Bill -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/spacing_md">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Total Belanja" android:textColor="@color/text_light" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/tvTotalBill" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_dark" android:textStyle="bold" android:textSize="@dimen/text_body_large" />
+            </LinearLayout>
+
+            <!-- Uang Diterima -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/spacing_md">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Uang Diterima" android:textColor="@color/text_light" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/tvPaidAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_dark" android:textStyle="bold" android:textSize="@dimen/text_body_large" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border_light" android:layout_marginBottom="@dimen/spacing_md" />
+
+            <!-- Uang Kembali -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Kembalian" android:textColor="@color/text_light" android:textSize="@dimen/text_body_large" />
+                <TextView android:id="@+id/tvChangeAmount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/primary" android:textStyle="bold" android:textSize="@dimen/text_headline_medium" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Bottom Actions Panel -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Print Struk Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPrintReceipt"
+            style="@style/Widget.KasirUmkm.Button.Outline"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_large"
+            android:text="Print Struk Kasir"
+            android:layout_marginBottom="@dimen/spacing_md"
+            app:icon="@android:drawable/ic_menu_slideshow"
+            app:iconGravity="textStart"
+            app:iconTint="@color/primary" />
+
+        <!-- Selesai / Transaksi Baru -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNewTransaction"
+            style="@style/Widget.KasirUmkm.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_large"
+            android:text="Transaksi Baru" />
+    </LinearLayout>
+
+</LinearLayout>

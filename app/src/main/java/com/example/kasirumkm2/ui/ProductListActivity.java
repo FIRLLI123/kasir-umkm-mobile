@@ -1,0 +1,156 @@
+package com.example.kasirumkm2.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.example.kasirumkm2.R;
+import com.example.kasirumkm2.adapter.ProductAdapter;
+import com.example.kasirumkm2.api.ApiClient;
+import com.example.kasirumkm2.api.ApiService;
+import com.example.kasirumkm2.data.Product;
+import com.example.kasirumkm2.databinding.ActivityProductListBinding;
+import com.example.kasirumkm2.utils.CurrencyHelper;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class ProductListActivity extends AppCompatActivity {
+
+    private ActivityProductListBinding binding;
+    private ApiService apiService;
+    private ProductAdapter adapter;
+    private final Gson gson = new Gson();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityProductListBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        apiService = ApiClient.getApiService(this);
+
+        setupToolbar();
+        setupRecyclerView();
+        setupSearch();
+        setupFab();
+        setupSwipeRefresh();
+
+        loadProducts();
+    }
+
+    private void setupToolbar() {
+        binding.btnBack.setOnClickListener(v -> finish());
+    }
+
+    private void setupRecyclerView() {
+        adapter = new ProductAdapter(product -> {
+            Intent intent = new Intent(this, ProductDetailActivity.class);
+            intent.putExtra("product_id", product.getId());
+            startActivity(intent);
+        });
+        binding.rvProducts.setLayoutManager(new LinearLayoutManager(this));
+        binding.rvProducts.setAdapter(adapter);
+    }
+
+    private void setupSearch() {
+        binding.etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void setupFab() {
+        binding.fabAdd.setOnClickListener(v -> {
+            Intent intent = new Intent(this, ProductFormActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void setupSwipeRefresh() {
+        binding.swipeRefresh.setColorSchemeColors(getColor(R.color.primary));
+        binding.swipeRefresh.setOnRefreshListener(this::loadProducts);
+    }
+
+    private void loadProducts() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+
+        apiService.getProducts().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                binding.swipeRefresh.setRefreshing(false);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        JsonArray dataArray = body.getAsJsonArray("data");
+
+                        List<Product> products = new ArrayList<>();
+                        for (int i = 0; i < dataArray.size(); i++) {
+                            Product p = gson.fromJson(dataArray.get(i), Product.class);
+                            products.add(p);
+                        }
+
+                        adapter.setData(products);
+                        toggleEmptyState(products.isEmpty());
+                    } catch (Exception e) {
+                        CurrencyHelper.showError(binding.getRoot(), "Gagal memuat data produk");
+                        toggleEmptyState(true);
+                    }
+                } else if (response.code() == 401) {
+                    handleUnauthorized();
+                } else {
+                    CurrencyHelper.showError(binding.getRoot(), getString(R.string.terjadi_kesalahan));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                binding.swipeRefresh.setRefreshing(false);
+                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+            }
+        });
+    }
+
+    private void toggleEmptyState(boolean empty) {
+        binding.layoutEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
+        binding.rvProducts.setVisibility(empty ? View.GONE : View.VISIBLE);
+    }
+
+    private void handleUnauthorized() {
+        new com.example.kasirumkm2.session.SessionManager(this).clearSession();
+        ApiClient.resetClient();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadProducts();
+    }
+}

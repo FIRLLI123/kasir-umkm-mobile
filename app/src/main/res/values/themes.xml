@@ -1,0 +1,100 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base application theme - No ActionBar, light status bar -->
+    <style name="Theme.KasirUmkm2" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand color - Teal -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <!-- Secondary brand color -->
+        <item name="colorSecondary">@color/primary</item>
+        <item name="colorSecondaryVariant">@color/primary_dark</item>
+        <item name="colorOnSecondary">@color/on_primary</item>
+        <!-- Status bar - light background, dark icons -->
+        <item name="android:statusBarColor">@color/background_page</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Background -->
+        <item name="android:windowBackground">@color/background_page</item>
+        <item name="android:colorBackground">@color/background_page</item>
+        <!-- Error color -->
+        <item name="colorError">@color/danger_red</item>
+    </style>
+
+    <!-- Login screen theme - full screen with no status bar tint -->
+    <style name="Theme.KasirUmkm2.Login" parent="Theme.KasirUmkm2">
+        <item name="android:statusBarColor">@color/background_page</item>
+    </style>
+
+    <!-- POS screen theme - full screen focus -->
+    <style name="Theme.KasirUmkm2.POS" parent="Theme.KasirUmkm2">
+        <item name="android:statusBarColor">@color/background_page</item>
+    </style>
+
+    <!-- Button Styles -->
+    <style name="Widget.KasirUmkm.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.03</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="Widget.KasirUmkm.Button.Outline" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/primary</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <style name="Widget.KasirUmkm.Button.Danger" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/danger_red</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="android:textColor">@color/danger_red</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">10dp</item>
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+    <!-- TextInputLayout Style -->
+    <style name="Widget.KasirUmkm.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/primary</item>
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+        <item name="hintTextColor">@color/primary</item>
+    </style>
+
+    <!-- Card Style -->
+    <style name="Widget.KasirUmkm.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/background_card</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/border_light</item>
+    </style>
+
+    <!-- BottomSheet Style -->
+    <style name="Theme.KasirUmkm2.BottomSheet" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.KasirUmkm.BottomSheet</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@color/transparent</item>
+    </style>
+
+    <style name="Widget.KasirUmkm.BottomSheet" parent="Widget.MaterialComponents.BottomSheet">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.KasirUmkm.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearance.KasirUmkm.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">20dp</item>
+        <item name="cornerSizeTopRight">20dp</item>
+    </style>
+
+</resources>

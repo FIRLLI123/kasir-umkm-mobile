@@ -1,0 +1,143 @@
+<resources>
+    <string name="app_name">Kasir UMKM</string>
+
+    <!-- Login -->
+    <string name="login_tagline">Kelola bisnis Anda dengan mudah</string>
+    <string name="hint_email">Email</string>
+    <string name="hint_password">Password</string>
+    <string name="btn_login">MASUK</string>
+    <string name="device_lock_info">Login akan logout perangkat lain</string>
+    <string name="login_error_email">Email tidak boleh kosong</string>
+    <string name="login_error_password">Password tidak boleh kosong</string>
+
+    <!-- Dashboard -->
+    <string name="greeting_morning">Selamat Pagi 👋</string>
+    <string name="greeting_afternoon">Selamat Siang 👋</string>
+    <string name="greeting_evening">Selamat Sore 👋</string>
+    <string name="greeting_night">Selamat Malam 👋</string>
+    <string name="omzet_hari_ini">Omzet Hari Ini</string>
+    <string name="total_modal">Total Modal</string>
+    <string name="margin_percent">Margin</string>
+    <string name="total_transaksi">Transaksi</string>
+    <string name="transaksi_terbaru">Transaksi Terbaru</string>
+
+    <!-- Quick Actions -->
+    <string name="action_kasir">Kasir</string>
+    <string name="action_produk">Produk</string>
+    <string name="action_customer">Customer</string>
+    <string name="action_laporan">Laporan</string>
+
+    <!-- Bottom Nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_kasir">Kasir</string>
+    <string name="nav_laporan">Laporan</string>
+    <string name="nav_pengaturan">Pengaturan</string>
+
+    <!-- POS -->
+    <string name="transaksi_baru">Transaksi Baru</string>
+    <string name="pilih_customer">Pilih Customer</string>
+    <string name="cari_produk">Cari produk…</string>
+    <string name="keranjang">Keranjang</string>
+    <string name="total">Total</string>
+    <string name="btn_bayar">BAYAR SEKARANG</string>
+    <string name="keranjang_kosong">Keranjang masih kosong</string>
+
+    <!-- Checkout -->
+    <string name="total_bayar">Total yang harus dibayar</string>
+    <string name="metode_pembayaran">Metode Pembayaran</string>
+    <string name="nominal_bayar">Nominal Bayar</string>
+    <string name="kembalian">Kembalian</string>
+    <string name="btn_proses_bayar">PROSES BAYAR</string>
+    <string name="nominal_kurang">Nominal bayar kurang</string>
+
+    <!-- Success -->
+    <string name="transaksi_berhasil">Transaksi Berhasil!</string>
+    <string name="btn_cetak_struk">Cetak Struk</string>
+    <string name="btn_transaksi_baru">Transaksi Baru</string>
+
+    <!-- Product -->
+    <string name="produk">Produk</string>
+    <string name="tambah_produk">Tambah Produk</string>
+    <string name="edit_produk">Edit Produk</string>
+    <string name="kode_produk">Kode Produk</string>
+    <string name="nama_produk">Nama Produk</string>
+    <string name="satuan">Satuan</string>
+    <string name="harga_modal">Harga Modal</string>
+    <string name="harga_user">Harga User</string>
+    <string name="harga_freelancer">Harga Freelancer</string>
+    <string name="harga_grosir">Harga Grosir</string>
+    <string name="status_aktif">Aktif</string>
+    <string name="status_nonaktif">Nonaktif</string>
+    <string name="filter_semua">Semua</string>
+    <string name="belum_ada_produk">Belum ada produk.\nTambah sekarang!</string>
+
+    <!-- Customer -->
+    <string name="customer">Customer</string>
+    <string name="tambah_customer">Tambah Customer</string>
+    <string name="edit_customer">Edit Customer</string>
+    <string name="kode_customer">Kode Customer</string>
+    <string name="nama_customer">Nama Customer</string>
+    <string name="no_hp">No. HP</string>
+    <string name="alamat">Alamat</string>
+    <string name="golongan">Golongan</string>
+    <string name="belum_ada_customer">Belum ada customer.\nTambah sekarang!</string>
+
+    <!-- Reports -->
+    <string name="laporan">Laporan</string>
+    <string name="harian">Harian</string>
+    <string name="mingguan">Mingguan</string>
+    <string name="bulanan">Bulanan</string>
+    <string name="per_produk">Produk</string>
+    <string name="per_customer">Customer</string>
+    <string name="per_pembayaran">Pembayaran</string>
+    <string name="total_penjualan">Total Penjualan</string>
+    <string name="laba_bersih">Laba Bersih</string>
+    <string name="belum_ada_data">Belum ada data laporan</string>
+
+    <!-- Settings -->
+    <string name="pengaturan">Pengaturan</string>
+    <string name="profil_toko">Profil Toko</string>
+    <string name="nama_toko">Nama Toko</string>
+    <string name="alamat_toko">Alamat Toko</string>
+    <string name="no_telp">No. Telepon</string>
+    <string name="ucapan_struk">Ucapan Struk</string>
+    <string name="info_akun">Info Akun</string>
+    <string name="printer_thermal">Printer Thermal</string>
+    <string name="btn_logout">Logout</string>
+    <string name="versi_app">Versi Aplikasi</string>
+
+    <!-- General -->
+    <string name="simpan">SIMPAN</string>
+    <string name="batal">BATAL</string>
+    <string name="hapus">HAPUS</string>
+    <string name="edit">EDIT</string>
+    <string name="coba_lagi">Coba Lagi</string>
+    <string name="ok">OK</string>
+    <string name="ya">Ya</string>
+    <string name="tidak">Tidak</string>
+    <string name="memuat">Memuat data...</string>
+    <string name="tidak_ada_koneksi">Tidak ada koneksi internet</string>
+    <string name="terjadi_kesalahan">Terjadi kesalahan pada server.\nSilakan coba kembali</string>
+    <string name="sesi_berakhir">Sesi login telah berakhir</string>
+    <string name="berhasil_disimpan">Data berhasil disimpan</string>
+    <string name="berhasil_dihapus">Data berhasil dihapus</string>
+    <string name="konfirmasi_hapus">Apakah Anda yakin ingin menghapus data ini?</string>
+    <string name="konfirmasi_void">Apakah Anda yakin ingin membatalkan transaksi ini?</string>
+    <string name="alasan_void">Alasan Pembatalan</string>
+    <string name="rp_prefix">Rp</string>
+
+    <!-- Receipt -->
+    <string name="struk_divider">================================</string>
+    <string name="struk_divider_thin">--------------------------------</string>
+    <string name="struk_footer_default">Terima kasih atas kunjungan\nAnda! Sampai jumpa.</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_logo">Logo Kasir UMKM</string>
+    <string name="cd_toggle_password">Tampilkan/sembunyikan password</string>
+    <string name="cd_avatar">Avatar pengguna</string>
+    <string name="cd_close">Tutup</string>
+    <string name="cd_search">Cari</string>
+    <string name="cd_add">Tambah</string>
+    <string name="cd_printer">Printer</string>
+    <string name="cd_calendar">Pilih tanggal</string>
+</resources>

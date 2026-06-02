@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Network -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Bluetooth for thermal printer -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+    <!-- Haptic feedback -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.KasirUmkm2"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
+
+        <!-- Splash (Launcher) -->
+        <activity
+            android:name=".ui.SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.KasirUmkm2.Login">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Login -->
+        <activity
+            android:name=".ui.LoginActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KasirUmkm2.Login" />
+
+        <!-- Main (BottomNav Host) -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- POS -->
+        <activity
+            android:name=".ui.POSActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KasirUmkm2.POS" />
+
+        <!-- Customer -->
+        <activity android:name=".ui.CustomerListActivity" android:exported="false" />
+        <activity android:name=".ui.CustomerFormActivity" android:exported="false" />
+        <activity android:name=".ui.CustomerDetailActivity" android:exported="false" />
+
+        <!-- Product -->
+        <activity android:name=".ui.ProductListActivity" android:exported="false" />
+        <activity android:name=".ui.ProductFormActivity" android:exported="false" />
+        <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
+
+        <!-- Stock -->
+        <activity android:name=".ui.StockActivity" android:exported="false" />
+        <activity android:name=".ui.StockDetailActivity" android:exported="false" />
+
+        <!-- Checkout & Success -->
+        <activity android:name=".ui.CheckoutActivity" android:exported="false" />
+        <activity android:name=".ui.SuccessActivity" android:exported="false" />
+        <activity android:name=".ui.SalesHistoryActivity" android:exported="false" />
+
+        <!-- Settings -->
+        <activity android:name=".ui.ProfileActivity" android:exported="false" />
+
+    </application>
+</manifest>

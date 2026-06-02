@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_bottom_sheet"
+    android:padding="@dimen/spacing_xl">
+
+    <!-- Drag Handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/border"
+        android:layout_marginBottom="@dimen/spacing_lg" />
+
+    <!-- Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📦 Sesuaikan Stok"
+        android:textColor="@color/text_dark"
+        android:textSize="@dimen/text_headline_medium"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/spacing_lg" />
+
+    <!-- Current Stock Info -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="@dimen/card_radius"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="@color/primary_pale"
+        app:strokeColor="@color/primary_light"
+        app:strokeWidth="1dp"
+        android:layout_marginBottom="@dimen/spacing_lg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="@dimen/card_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvAdjProductName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_dark"
+                    android:textSize="@dimen/text_body_large"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Stok saat ini"
+                    android:textColor="@color/text_gray"
+                    android:textSize="@dimen/text_body_medium"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvAdjCurrentStock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary"
+                android:textSize="@dimen/text_display_large"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Action Mode Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pilih Aksi Stok"
+        android:textColor="@color/text_dark"
+        android:textSize="@dimen/text_body_medium"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/cgMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        android:layout_marginBottom="@dimen/spacing_md">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipAdd"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="➕ Tambah" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSubtract"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="➖ Kurang" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSet"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🎯 Atur Akhir" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- New Stock Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilNewStock"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Stok Baru (Akhir)"
+        app:boxCornerRadiusTopStart="@dimen/input_radius"
+        app:boxCornerRadiusTopEnd="@dimen/input_radius"
+        app:boxCornerRadiusBottomStart="@dimen/input_radius"
+        app:boxCornerRadiusBottomEnd="@dimen/input_radius"
+        app:boxStrokeColor="@color/primary"
+        app:hintTextColor="@color/text_gray"
+        app:helperText="Masukkan angka stok akhir yang diinginkan, bukan qty tambahan"
+        app:helperTextEnabled="true"
+        android:layout_marginBottom="@dimen/spacing_md">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNewStock"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/input_height"
+            android:inputType="numberDecimal"
+            android:textSize="@dimen/text_body_large"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Note Input -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilNote"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Alasan Perubahan (opsional)"
+        app:boxCornerRadiusTopStart="@dimen/input_radius"
+        app:boxCornerRadiusTopEnd="@dimen/input_radius"
+        app:boxCornerRadiusBottomStart="@dimen/input_radius"
+        app:boxCornerRadiusBottomEnd="@dimen/input_radius"
+        app:boxStrokeColor="@color/primary"
+        app:hintTextColor="@color/text_gray"
+        android:layout_marginBottom="@dimen/spacing_xl">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNote"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/input_height"
+            android:inputType="text"
+            android:textSize="@dimen/text_body_large"
+            android:textColor="@color/text_dark" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Stock Change Preview -->
+    <LinearLayout
+        android:id="@+id/layoutPreview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/spacing_lg"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvPreviewOld"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_gray"
+            android:textSize="@dimen/text_body_large" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  →  "
+            android:textColor="@color/text_light"
+            android:textSize="@dimen/text_body_large" />
+
+        <TextView
+            android:id="@+id/tvPreviewNew"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_body_large" />
+
+        <TextView
+            android:id="@+id/tvPreviewDiff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_body_medium"
+            android:layout_marginStart="@dimen/spacing_sm" />
+    </LinearLayout>
+
+    <!-- Buttons -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height_large"
+        android:text="Simpan Perubahan"
+        android:textAllCaps="false"
+        android:textSize="@dimen/text_title_medium"
+        app:backgroundTint="@color/primary"
+        app:cornerRadius="@dimen/button_radius"
+        android:layout_marginBottom="@dimen/spacing_sm" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCancel"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/button_height"
+        android:text="Batal"
+        android:textAllCaps="false"
+        android:textColor="@color/text_gray"
+        android:textSize="@dimen/text_body_large" />
+
+    <!-- Loading -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/primary"
+        android:visibility="gone" />
+</LinearLayout>
