@@ -157,4 +157,23 @@
     <string name="cd_add">Tambah</string>
     <string name="cd_printer">Printer</string>
     <string name="cd_calendar">Pilih tanggal</string>
+
+    <!-- Backup & Export -->
+    <string name="menu_backup_title">Ekspor &amp; Backup Data</string>
+    <string name="menu_backup_subtitle">Excel (CSV)</string>
+    <string name="backup_activity_title">Ekspor &amp; Backup Data</string>
+    <string name="backup_activity_subtitle">Ekspor data ke spreadsheet format Excel (CSV)</string>
+    <string name="backup_info_desc">Cadangkan data transaksi, produk, dan customer Anda untuk pembukuan atau analisis spreadsheet.</string>
+    
+    <string name="backup_sales_title">Ekspor Data Transaksi</string>
+    <string name="backup_sales_desc">Seluruh riwayat transaksi penjualan, nominal, dan metode pembayaran.</string>
+    <string name="backup_products_title">Ekspor Data Produk</string>
+    <string name="backup_products_desc">Seluruh daftar produk, barcode, harga beli, harga jual, dan stok saat ini.</string>
+    <string name="backup_customers_title">Ekspor Data Customer</string>
+    <string name="backup_customers_desc">Daftar pelanggan terdaftar, kontak HP, alamat, dan grup pelanggan.</string>
+    
+    <string name="btn_export_now">Ekspor Data</string>
+    <string name="export_success">Data berhasil diekspor!</string>
+    <string name="export_failed">Ekspor data gagal</string>
+    <string name="export_unauthorized">Sesi berakhir, silakan login ulang</string>
 </resources>

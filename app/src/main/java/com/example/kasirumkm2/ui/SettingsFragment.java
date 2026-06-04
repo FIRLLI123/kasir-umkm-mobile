@@ -113,6 +113,10 @@ public class SettingsFragment extends Fragment {
             startActivity(new Intent(requireContext(), UserActivity.class));
         });
 
+        binding.layoutOptionBackup.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), BackupActivity.class));
+        });
+
         binding.layoutOptionInfo.setOnClickListener(v -> showAppInfo());
 
         binding.btnLogout.setOnClickListener(v -> confirmLogout());

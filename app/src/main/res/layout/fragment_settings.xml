@@ -333,6 +333,55 @@
                         android:background="@color/border_light"
                         android:visibility="gone" />
 
+                    <!-- Option 3.7: Backup & Export -->
+                    <LinearLayout
+                        android:id="@+id/layoutOptionBackup"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="@dimen/card_padding"
+                        android:paddingEnd="@dimen/card_padding"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💾"
+                            android:textSize="20sp"
+                            android:layout_marginEnd="@dimen/spacing_md" />
+                        
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/menu_backup_title"
+                            android:textColor="@color/text_dark"
+                            android:textSize="@dimen/text_body_large" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/menu_backup_subtitle"
+                            android:textColor="@color/text_gray"
+                            android:textSize="@dimen/text_body_medium"
+                            android:layout_marginEnd="4dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="›"
+                            android:textColor="@color/text_light"
+                            android:textSize="22sp" />
+                    </LinearLayout>
+
+                    <View 
+                        android:layout_width="match_parent" 
+                        android:layout_height="1dp" 
+                        android:background="@color/border_light" />
+
                     <!-- Option 4: Info Aplikasi -->
                     <LinearLayout
                         android:id="@+id/layoutOptionInfo"
