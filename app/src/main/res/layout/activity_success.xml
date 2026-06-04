@@ -126,7 +126,7 @@
             android:layout_height="@dimen/button_height_large"
             android:text="Print Struk Kasir"
             android:layout_marginBottom="@dimen/spacing_md"
-            app:icon="@android:drawable/ic_menu_slideshow"
+            app:icon="@drawable/baseline_newspaper_24"
             app:iconGravity="textStart"
             app:iconTint="@color/primary" />
 
@@ -136,7 +136,16 @@
             style="@style/Widget.KasirUmkm.Button.Primary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/button_height_large"
-            android:text="Transaksi Baru" />
+            android:text="Transaksi Baru"
+            android:layout_marginBottom="@dimen/spacing_md" />
+
+        <!-- Menu Utama -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMainMenu"
+            style="@style/Widget.KasirUmkm.Button.Outline"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_large"
+            android:text="Menu Utama" />
     </LinearLayout>
 
 </LinearLayout>

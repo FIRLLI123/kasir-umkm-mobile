@@ -48,12 +48,9 @@ public class CustomerFormActivity extends AppCompatActivity {
 
         setupToolbar();
         setupListeners();
-        loadCustomerGroups();
 
-        if (isEditMode) {
-            binding.tvTitle.setText(getString(R.string.edit_customer));
-            loadCustomerData();
-        }
+        binding.btnSave.setEnabled(false); // Disable until customer groups load
+        loadCustomerGroups();
     }
 
     private void setupToolbar() {
@@ -65,9 +62,12 @@ public class CustomerFormActivity extends AppCompatActivity {
     }
 
     private void loadCustomerGroups() {
+        binding.progressBar.setVisibility(View.VISIBLE);
         apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                boolean success = false;
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         JsonArray data = response.body().getAsJsonArray("data");
@@ -75,14 +75,27 @@ public class CustomerFormActivity extends AppCompatActivity {
                         for (int i = 0; i < data.size(); i++) {
                             customerGroups.add(gson.fromJson(data.get(i), CustomerGroup.class));
                         }
+                        success = true;
                     } catch (Exception e) {
                         // ignore
                     }
                 }
+
+                if (success) {
+                    binding.btnSave.setEnabled(true);
+                    if (isEditMode) {
+                        loadCustomerData();
+                    }
+                } else {
+                    CurrencyHelper.showError(binding.getRoot(), "Gagal memuat customer groups. Silakan buka ulang halaman ini.");
+                }
             }
 
             @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {}
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                CurrencyHelper.showError(binding.getRoot(), "Gagal memuat customer groups: " + t.getMessage());
+            }
         });
     }
 
@@ -106,11 +119,19 @@ public class CustomerFormActivity extends AppCompatActivity {
                         binding.etPhone.setText(customer.getPhone());
                         binding.etAddress.setText(customer.getAddress());
 
-                        // Set group radio
-                        int groupId = customer.getCustomerGroupId();
-                        if (groupId == 2) binding.rbFreelancer.setChecked(true);
-                        else if (groupId == 3) binding.rbGrosir.setChecked(true);
-                        else binding.rbUser.setChecked(true);
+                        // Set group radio dynamically
+                        if (customer.getCustomerGroup() != null) {
+                            String code = customer.getCustomerGroup().getCode();
+                            if ("FREELANCER".equalsIgnoreCase(code)) {
+                                binding.rbFreelancer.setChecked(true);
+                            } else if ("GROSIR".equalsIgnoreCase(code)) {
+                                binding.rbGrosir.setChecked(true);
+                            } else {
+                                binding.rbUser.setChecked(true);
+                            }
+                        } else {
+                            binding.rbUser.setChecked(true);
+                        }
                     } catch (Exception e) {
                         CurrencyHelper.showError(binding.getRoot(), "Gagal memuat data");
                     }
@@ -148,10 +169,24 @@ public class CustomerFormActivity extends AppCompatActivity {
         }
         if (!valid) return;
 
-        // Get group ID
-        int groupId = 1; // default USER
-        if (binding.rbFreelancer.isChecked()) groupId = 2;
-        else if (binding.rbGrosir.isChecked()) groupId = 3;
+        // Get group ID dynamically
+        String targetCode = "USER";
+        if (binding.rbFreelancer.isChecked()) {
+            targetCode = "FREELANCER";
+        } else if (binding.rbGrosir.isChecked()) {
+            targetCode = "GROSIR";
+        }
+
+        int groupId = -1;
+        for (CustomerGroup cg : customerGroups) {
+            if (targetCode.equalsIgnoreCase(cg.getCode())) {
+                groupId = cg.getId();
+                break;
+            }
+        }
+        if (groupId == -1) {
+            groupId = 1; // default fallback
+        }
 
         // Build request body
         JsonObject body = new JsonObject();

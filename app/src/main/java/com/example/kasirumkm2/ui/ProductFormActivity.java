@@ -13,6 +13,7 @@ import com.example.kasirumkm2.data.Product;
 import com.example.kasirumkm2.data.ProductPrice;
 import com.example.kasirumkm2.databinding.ActivityProductFormBinding;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+import com.example.kasirumkm2.utils.NumberTextWatcher;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -33,6 +34,10 @@ public class ProductFormActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private int productId = -1;
 
+    private int userGroupId = 1;
+    private int freelancerGroupId = 2;
+    private int grosirGroupId = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,10 +53,60 @@ public class ProductFormActivity extends AppCompatActivity {
         setupToolbar();
         setupListeners();
 
+        binding.btnSave.setEnabled(false); // Disable until customer groups load
+
         if (isEditMode) {
             binding.tvTitle.setText("Edit Produk");
-            loadProductData();
         }
+
+        loadCustomerGroups();
+    }
+
+    private void loadCustomerGroups() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+        apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                boolean success = false;
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray data = response.body().getAsJsonArray("data");
+                        for (int i = 0; i < data.size(); i++) {
+                            JsonObject obj = data.get(i).getAsJsonObject();
+                            int id = obj.get("id").getAsInt();
+                            String code = obj.get("group_code").getAsString();
+                            
+                            if ("USER".equalsIgnoreCase(code)) {
+                                userGroupId = id;
+                            } else if ("FREELANCER".equalsIgnoreCase(code)) {
+                                freelancerGroupId = id;
+                            } else if ("GROSIR".equalsIgnoreCase(code)) {
+                                grosirGroupId = id;
+                            }
+                        }
+                        success = true;
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                
+                if (success) {
+                    binding.btnSave.setEnabled(true);
+                    if (isEditMode) {
+                        loadProductData();
+                    }
+                } else {
+                    CurrencyHelper.showError(binding.getRoot(), "Gagal memuat customer groups. Silakan buka ulang halaman ini.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                CurrencyHelper.showError(binding.getRoot(), "Gagal memuat customer groups: " + t.getMessage());
+            }
+        });
     }
 
     private void setupToolbar() {
@@ -60,6 +115,10 @@ public class ProductFormActivity extends AppCompatActivity {
 
     private void setupListeners() {
         binding.btnSave.setOnClickListener(v -> saveProduct());
+        binding.etCostPrice.addTextChangedListener(new NumberTextWatcher(binding.etCostPrice));
+        binding.etPriceUser.addTextChangedListener(new NumberTextWatcher(binding.etPriceUser));
+        binding.etPriceFreelancer.addTextChangedListener(new NumberTextWatcher(binding.etPriceFreelancer));
+        binding.etPriceGrosir.addTextChangedListener(new NumberTextWatcher(binding.etPriceGrosir));
     }
 
     private void loadProductData() {
@@ -81,12 +140,12 @@ public class ProductFormActivity extends AppCompatActivity {
                         binding.etName.setText(product.getProductName());
                         binding.etUnit.setText(product.getUnit());
                         binding.etStock.setText(String.valueOf(product.getStock()));
-                        binding.etCostPrice.setText(String.valueOf((int) product.getCostPrice()));
+                        binding.etCostPrice.setText(CurrencyHelper.formatNumber(product.getCostPrice()));
 
                         // Prices
-                        binding.etPriceUser.setText(String.valueOf((int) product.getSellingPrice(1)));
-                        binding.etPriceFreelancer.setText(String.valueOf((int) product.getSellingPrice(2)));
-                        binding.etPriceGrosir.setText(String.valueOf((int) product.getSellingPrice(3)));
+                        binding.etPriceUser.setText(CurrencyHelper.formatNumber(product.getSellingPrice(userGroupId)));
+                        binding.etPriceFreelancer.setText(CurrencyHelper.formatNumber(product.getSellingPrice(freelancerGroupId)));
+                        binding.etPriceGrosir.setText(CurrencyHelper.formatNumber(product.getSellingPrice(grosirGroupId)));
                     } catch (Exception e) {
                         CurrencyHelper.showError(binding.getRoot(), "Gagal memuat detail produk");
                     }
@@ -177,7 +236,7 @@ public class ProductFormActivity extends AppCompatActivity {
         body.addProperty("product_code", code);
         body.addProperty("product_name", name);
         body.addProperty("unit", unit);
-        body.addProperty("cost_price", Double.parseDouble(costPriceStr));
+        body.addProperty("cost_price", CurrencyHelper.parseDouble(costPriceStr));
         body.addProperty("stock", Integer.parseInt(stockStr));
         body.addProperty("status", "00");
 
@@ -185,18 +244,18 @@ public class ProductFormActivity extends AppCompatActivity {
         JsonArray pricesArray = new JsonArray();
         
         JsonObject priceUser = new JsonObject();
-        priceUser.addProperty("customer_group_id", 1);
-        priceUser.addProperty("selling_price", Double.parseDouble(priceUserStr));
+        priceUser.addProperty("customer_group_id", userGroupId);
+        priceUser.addProperty("selling_price", CurrencyHelper.parseDouble(priceUserStr));
         pricesArray.add(priceUser);
 
         JsonObject priceFreelancer = new JsonObject();
-        priceFreelancer.addProperty("customer_group_id", 2);
-        priceFreelancer.addProperty("selling_price", Double.parseDouble(priceFreelancerStr));
+        priceFreelancer.addProperty("customer_group_id", freelancerGroupId);
+        priceFreelancer.addProperty("selling_price", CurrencyHelper.parseDouble(priceFreelancerStr));
         pricesArray.add(priceFreelancer);
 
         JsonObject priceGrosir = new JsonObject();
-        priceGrosir.addProperty("customer_group_id", 3);
-        priceGrosir.addProperty("selling_price", Double.parseDouble(priceGrosirStr));
+        priceGrosir.addProperty("customer_group_id", grosirGroupId);
+        priceGrosir.addProperty("selling_price", CurrencyHelper.parseDouble(priceGrosirStr));
         pricesArray.add(priceGrosir);
 
         body.add("prices", pricesArray);

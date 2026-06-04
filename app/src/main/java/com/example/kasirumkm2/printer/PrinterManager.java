@@ -49,13 +49,39 @@ public class PrinterManager {
             printerHelper.write(PrinterFormatter.ESC_ALIGN_CENTER);
             printerHelper.write(PrinterFormatter.ESC_DOUBLE_SIZE_ON);
             printerHelper.write(PrinterFormatter.ESC_BOLD_ON);
-            writeText(shopName != null ? shopName : "KASIR UMKM\n");
+
+            String companyName = "KASIR UMKM";
+            String companyAddress = "Jl. Raya UMKM Hebat No. 99";
+            String companyPhone = "Telp: 0812-3456-7890";
+
+            if (sale.has("company") && !sale.get("company").isJsonNull()) {
+                JsonObject company = sale.getAsJsonObject("company");
+                if (company.has("company_name") && !company.get("company_name").isJsonNull()) {
+                    companyName = company.get("company_name").getAsString();
+                }
+                if (company.has("address") && !company.get("address").isJsonNull()) {
+                    companyAddress = company.get("address").getAsString();
+                }
+                if (company.has("phone") && !company.get("phone").isJsonNull()) {
+                    companyPhone = "Telp: " + company.get("phone").getAsString();
+                } else {
+                    companyPhone = "";
+                }
+            } else if (shopName != null && !shopName.isEmpty()) {
+                companyName = shopName;
+            }
+
+            writeText(companyName + "\n");
             printerHelper.write(PrinterFormatter.ESC_DOUBLE_SIZE_OFF);
             printerHelper.write(PrinterFormatter.ESC_BOLD_OFF);
 
             // Sub-header (Centered)
-            writeText("Jl. Raya UMKM Hebat No. 99\n");
-            writeText("Telp: 0812-3456-7890\n");
+            if (!companyAddress.isEmpty()) {
+                writeText(companyAddress + "\n");
+            }
+            if (!companyPhone.isEmpty()) {
+                writeText(companyPhone + "\n");
+            }
             
             // 3. Info (Left aligned)
             printerHelper.write(PrinterFormatter.ESC_ALIGN_LEFT);

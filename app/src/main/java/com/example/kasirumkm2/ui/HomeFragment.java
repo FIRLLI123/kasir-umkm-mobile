@@ -69,7 +69,13 @@ public class HomeFragment extends Fragment {
 
     private void setupHeader() {
         binding.tvGreeting.setText(CurrencyHelper.getGreeting(requireContext()));
-        binding.tvUserName.setText(sessionManager.getUserName());
+        
+        String compName = sessionManager.getCompanyName();
+        if (compName != null && !compName.isEmpty()) {
+            binding.tvUserName.setText(sessionManager.getUserName() + " · " + compName);
+        } else {
+            binding.tvUserName.setText(sessionManager.getUserName());
+        }
 
         // Avatar initials
         String name = sessionManager.getUserName();

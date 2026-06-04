@@ -135,4 +135,32 @@ public interface ApiService {
 
     @GET("app-settings")
     Call<JsonObject> getAppSettings();
+
+    // ======================== COMPANIES ========================
+
+    @GET("companies")
+    Call<JsonObject> getCompanies();
+
+    @POST("companies")
+    Call<JsonObject> createCompany(@Body JsonObject body);
+
+    @PUT("companies/{id}")
+    Call<JsonObject> updateCompany(@Path("id") int id, @Body JsonObject body);
+
+    @DELETE("companies/{id}")
+    Call<JsonObject> deleteCompany(@Path("id") int id);
+
+    // ======================== USERS ========================
+
+    @GET("users")
+    Call<JsonObject> getUsers();
+
+    @POST("users")
+    Call<JsonObject> createUser(@Body JsonObject body);
+
+    @PUT("users/{id}")
+    Call<JsonObject> updateUser(@Path("id") int id, @Body JsonObject body);
+
+    @DELETE("users/{id}")
+    Call<JsonObject> deleteUser(@Path("id") int id);
 }

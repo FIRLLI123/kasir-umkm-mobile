@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_page">
+
+    <!-- Header Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/page_margin"
+        android:paddingEnd="@dimen/page_margin"
+        android:background="@color/white"
+        android:elevation="2dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="?attr/homeAsUpIndicator"
+            android:contentDescription="Kembali"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:text="Tambah Pengguna"
+            android:textColor="@color/text_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/page_margin">
+
+            <!-- Nama Pengguna -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilName"
+                style="@style/Widget.KasirUmkm.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:hint="Nama Lengkap"
+                    android:inputType="textPersonName|textCapWords"
+                    android:textSize="@dimen/text_body_large" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Email -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
+                style="@style/Widget.KasirUmkm.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:hint="Alamat Email"
+                    android:inputType="textEmailAddress"
+                    android:textSize="@dimen/text_body_large" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
+                style="@style/Widget.KasirUmkm.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="@color/text_gray">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:hint="Password (min. 6 karakter)"
+                    android:inputType="textPassword"
+                    android:textSize="@dimen/text_body_large" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- No HP -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPhone"
+                style="@style/Widget.KasirUmkm.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhone"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:hint="Nomor Telepon / HP (Opsional)"
+                    android:inputType="phone"
+                    android:textSize="@dimen/text_body_large" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Company Selector Dropdown -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCompany"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:hint="Pilih Company / UMKM"
+                app:boxStrokeColor="@color/primary"
+                app:hintTextColor="@color/primary"
+                app:boxCornerRadiusTopStart="10dp"
+                app:boxCornerRadiusTopEnd="10dp"
+                app:boxCornerRadiusBottomStart="10dp"
+                app:boxCornerRadiusBottomEnd="10dp">
+                <AutoCompleteTextView
+                    android:id="@+id/actvCompany"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:inputType="none"
+                    android:textSize="@dimen/text_body_large" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Role Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Peran / Role Pengguna"
+                android:textColor="@color/text_dark"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/spacing_sm" />
+
+            <RadioGroup
+                android:id="@+id/rgRole"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="@dimen/spacing_lg">
+
+                <RadioButton
+                    android:id="@+id/rbKasir"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:text="KASIR"
+                    android:textSize="@dimen/text_body_large"
+                    android:buttonTint="@color/primary"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/rbAdmin"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:text="ADMIN"
+                    android:textSize="@dimen/text_body_large"
+                    android:buttonTint="@color/primary" />
+
+                <RadioButton
+                    android:id="@+id/rbSuperAdmin"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:text="SUPER_ADMIN"
+                    android:textSize="@dimen/text_body_large"
+                    android:buttonTint="@color/primary" />
+            </RadioGroup>
+
+            <!-- Status Switch Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardStatus"
+                style="@style/Widget.KasirUmkm.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xxl">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Status Aktif"
+                            android:textColor="@color/text_dark"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nonaktifkan jika user ditangguhkan sementara"
+                            android:textColor="@color/text_gray"
+                            android:textSize="11sp"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        app:useMaterialThemeColors="true" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action Buttons -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                style="@style/Widget.KasirUmkm.Button.Primary"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height_large"
+                android:text="SIMPAN"
+                android:layout_marginBottom="@dimen/spacing_md"/>
+
+            <!-- Delete / Nonaktifkan Button (Visible in edit mode only) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
+                style="@style/Widget.KasirUmkm.Button.Danger"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height_large"
+                android:text="NONAKTIFKAN PENGGUNA"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_md"/>
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:indeterminateTint="@color/primary"
+                android:visibility="gone"
+                android:layout_marginTop="@dimen/spacing_lg" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

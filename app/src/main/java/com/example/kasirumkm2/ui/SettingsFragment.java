@@ -55,9 +55,14 @@ public class SettingsFragment extends Fragment {
     private void displayProfileSummary() {
         String name = sessionManager.getUserName();
         String email = sessionManager.getUserEmail();
+        String company = sessionManager.getCompanyName();
 
         binding.tvProfileName.setText(name);
-        binding.tvProfileEmail.setText(email);
+        if (company != null && !company.isEmpty()) {
+            binding.tvProfileEmail.setText(email + " · " + company);
+        } else {
+            binding.tvProfileEmail.setText(email);
+        }
 
         // Avatar Initials
         if (name != null && !name.isEmpty()) {
@@ -70,6 +75,20 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupListeners() {
+        // Toggle Company & User Management visibility for SUPER_ADMIN
+        String role = sessionManager.getUserRole();
+        if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+            binding.layoutOptionCompany.setVisibility(View.VISIBLE);
+            binding.dividerCompany.setVisibility(View.VISIBLE);
+            binding.layoutOptionUser.setVisibility(View.VISIBLE);
+            binding.dividerUser.setVisibility(View.VISIBLE);
+        } else {
+            binding.layoutOptionCompany.setVisibility(View.GONE);
+            binding.dividerCompany.setVisibility(View.GONE);
+            binding.layoutOptionUser.setVisibility(View.GONE);
+            binding.dividerUser.setVisibility(View.GONE);
+        }
+
         binding.layoutOptionProfile.setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), ProfileActivity.class));
         });
@@ -84,6 +103,14 @@ public class SettingsFragment extends Fragment {
 
         binding.layoutOptionStock.setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), StockActivity.class));
+        });
+
+        binding.layoutOptionCompany.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), CompanyActivity.class));
+        });
+
+        binding.layoutOptionUser.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), UserActivity.class));
         });
 
         binding.layoutOptionInfo.setOnClickListener(v -> showAppInfo());

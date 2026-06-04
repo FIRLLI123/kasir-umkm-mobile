@@ -118,6 +118,15 @@ public class LoginActivity extends AppCompatActivity {
                         // Save session
                         sessionManager.saveSession(token, userId, name, userEmail, role);
                         
+                        // Save company details if available in response
+                        if (data.has("company") && !data.get("company").isJsonNull()) {
+                            JsonObject comp = data.getAsJsonObject("company");
+                            int compId = comp.get("id").getAsInt();
+                            String compName = comp.get("company_name").getAsString();
+                            String compCode = comp.get("company_code").getAsString();
+                            sessionManager.saveCompany(compId, compName, compCode);
+                        }
+                        
                         // Save credentials for prefilling next time
                         sessionManager.saveSavedCredentials(email, password);
 

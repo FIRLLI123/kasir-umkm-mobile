@@ -19,6 +19,7 @@ import com.example.kasirumkm2.data.PaymentMethod;
 import com.example.kasirumkm2.databinding.ActivityCheckoutBinding;
 import com.example.kasirumkm2.databinding.ItemCheckoutSummaryBinding;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+import com.example.kasirumkm2.utils.NumberTextWatcher;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -46,6 +47,8 @@ public class CheckoutActivity extends AppCompatActivity {
     private int customerId = 0;
     private String customerName = "";
     private int customerGroupId = 1;
+    private int freelancerGroupId = 2;
+    private int grosirGroupId = 3;
 
     private double grandTotal = 0;
     private double changeAmount = 0;
@@ -78,21 +81,64 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         setupToolbar();
-        displayCustomerInfo();
+        loadCustomerGroups();
         displayOrderSummary();
         loadPaymentMethods();
         setupListeners();
     }
 
     private void setupToolbar() {
-        binding.btnBack.setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> {
+            if (binding.progressBar.getVisibility() == View.VISIBLE) return;
+            finish();
+        });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (binding.progressBar.getVisibility() == View.VISIBLE) {
+            return; // Disable back press when loading
+        }
+        super.onBackPressed();
+    }
+
+    private void loadCustomerGroups() {
+        apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray data = response.body().getAsJsonArray("data");
+                        for (int i = 0; i < data.size(); i++) {
+                            JsonObject obj = data.get(i).getAsJsonObject();
+                            int id = obj.get("id").getAsInt();
+                            String code = obj.get("group_code").getAsString();
+                            
+                            if ("FREELANCER".equalsIgnoreCase(code)) {
+                                freelancerGroupId = id;
+                            } else if ("GROSIR".equalsIgnoreCase(code)) {
+                                grosirGroupId = id;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                displayCustomerInfo();
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                displayCustomerInfo();
+            }
+        });
     }
 
     private void displayCustomerInfo() {
         binding.tvCustomerName.setText(customerName);
         String groupName = "USER / Reguler";
-        if (customerGroupId == 2) groupName = "FREELANCER";
-        else if (customerGroupId == 3) groupName = "GROSIR";
+        if (customerGroupId == freelancerGroupId) groupName = "FREELANCER";
+        else if (customerGroupId == grosirGroupId) groupName = "GROSIR";
         binding.tvCustomerGroup.setText("Golongan: " + groupName);
     }
 
@@ -215,6 +261,7 @@ public class CheckoutActivity extends AppCompatActivity {
             }
         });
 
+        binding.etPaidAmount.addTextChangedListener(new NumberTextWatcher(binding.etPaidAmount));
         binding.etPaidAmount.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -240,7 +287,7 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         try {
-            double paid = Double.parseDouble(input);
+            double paid = CurrencyHelper.parseDouble(input);
             changeAmount = paid - grandTotal;
             if (changeAmount < 0) {
                 binding.tvChangeAmount.setText("Kurang: " + CurrencyHelper.formatRupiah(Math.abs(changeAmount)));
@@ -269,7 +316,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 return;
             }
             try {
-                paidAmount = Double.parseDouble(paidInput);
+                paidAmount = CurrencyHelper.parseDouble(paidInput);
                 if (paidAmount < grandTotal) {
                     binding.tilPaidAmount.setError("Uang diterima kurang dari total tagihan");
                     return;
@@ -301,87 +348,129 @@ public class CheckoutActivity extends AppCompatActivity {
         }
         body.add("items", itemsArray);
 
+        showConfirmationDialog(paidAmount, body);
+    }
+
+    private void showConfirmationDialog(double paidAmount, JsonObject body) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("👤 Pelanggan: ").append(customerName == null || customerName.isEmpty() ? "Pelanggan Umum (USER)" : customerName).append("\n\n");
+        sb.append("🛒 Daftar Belanja:\n");
+        for (CartItem item : cartList) {
+            sb.append(" • ")
+              .append(item.getProduct().getProductName())
+              .append(" (")
+              .append(item.getQty())
+              .append(" x ")
+              .append(CurrencyHelper.formatRupiah(item.getPricePerUnit()))
+              .append(") = ")
+              .append(CurrencyHelper.formatRupiah(item.getSubtotal()))
+              .append("\n");
+        }
+        sb.append("\n💳 Metode: ").append(selectedPaymentMethodCode).append("\n");
+        if ("CASH".equalsIgnoreCase(selectedPaymentMethodCode)) {
+            sb.append("💵 Bayar: ").append(CurrencyHelper.formatRupiah(paidAmount)).append("\n");
+            double change = paidAmount - grandTotal;
+            sb.append("🪙 Kembalian: ").append(CurrencyHelper.formatRupiah(change)).append("\n");
+        }
+        sb.append("─────────────────────\n");
+        sb.append("💰 TOTAL BILL: ").append(CurrencyHelper.formatRupiah(grandTotal));
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Konfirmasi Transaksi")
+                .setMessage(sb.toString())
+                .setPositiveButton("Ya, Proses", (dialog, which) -> {
+                    submitTransaction(body);
+                })
+                .setNegativeButton("Batal", null)
+                .show();
+    }
+
+    private void submitTransaction(JsonObject body) {
         setLoading(true);
 
-        apiService.createSale(body).enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                setLoading(false);
-                if (response.isSuccessful() && response.body() != null) {
-                    try {
-                        JsonObject resObj = response.body();
-                        JsonObject saleData = resObj.getAsJsonObject("data");
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            if (isFinishing() || isDestroyed()) return;
 
-                        int saleId = saleData.get("id").getAsInt();
-                        String invoiceNo = saleData.get("invoice_no").getAsString();
-                        double grandTotalRes = saleData.get("grand_total").getAsDouble();
-                        double paidAmountRes = saleData.get("paid_amount").getAsDouble();
-                        double changeAmountRes = saleData.get("change_amount").getAsDouble();
+            apiService.createSale(body).enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    setLoading(false);
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            JsonObject resObj = response.body();
+                            JsonObject saleData = resObj.getAsJsonObject("data");
 
-                        Intent intent = new Intent(CheckoutActivity.this, SuccessActivity.class);
-                        intent.putExtra("sale_id", saleId);
-                        intent.putExtra("invoice_no", invoiceNo);
-                        intent.putExtra("grand_total", grandTotalRes);
-                        intent.putExtra("paid_amount", paidAmountRes);
-                        intent.putExtra("change_amount", changeAmountRes);
-                        intent.putExtra("customer_name", customerName);
-                        startActivity(intent);
-                        
-                        // Close POS activity flow
-                        setResult(RESULT_OK);
-                        finish();
-                    } catch (Exception e) {
-                        CurrencyHelper.showError(binding.getRoot(), "Transaksi sukses, tapi gagal membaca response");
-                    }
-                } else if (response.code() == 401) {
-                    handleUnauthorized();
-                } else {
-                    String errorMsg = "Gagal memproses transaksi";
-                    try {
-                        if (response.errorBody() != null) {
-                            String errorBodyStr = response.errorBody().string();
-                            JsonObject err = new com.google.gson.JsonParser()
-                                    .parse(errorBodyStr).getAsJsonObject();
-                            if (err.has("message")) errorMsg = err.get("message").getAsString();
+                            int saleId = saleData.get("id").getAsInt();
+                            String invoiceNo = saleData.get("invoice_no").getAsString();
+                            double grandTotalRes = saleData.get("grand_total").getAsDouble();
+                            double paidAmountRes = saleData.get("paid_amount").getAsDouble();
+                            double changeAmountRes = saleData.get("change_amount").getAsDouble();
 
-                            // Check if stock error with data
-                            if (errorMsg.contains("Stok") && err.has("data") && !err.get("data").isJsonNull()) {
-                                JsonObject errData = err.getAsJsonObject("data");
-                                int availableStock = errData.has("available_stock") ? errData.get("available_stock").getAsInt() : 0;
-                                int requestedQty = errData.has("requested_qty") ? errData.get("requested_qty").getAsInt() : 0;
-                                int errProductId = errData.has("product_id") ? errData.get("product_id").getAsInt() : 0;
-
-                                // Find product name from cart
-                                String errProductName = "Produk";
-                                for (CartItem ci : cartList) {
-                                    if (ci.getProduct().getId() == errProductId) {
-                                        errProductName = ci.getProduct().getProductName();
-                                        break;
-                                    }
-                                }
-
-                                new androidx.appcompat.app.AlertDialog.Builder(CheckoutActivity.this)
-                                        .setTitle("⚠️ Stok Tidak Cukup")
-                                        .setMessage("Stok " + errProductName + " tidak mencukupi!\n\n" +
-                                                "📦 Stok tersedia: " + availableStock + "\n" +
-                                                "🛒 Jumlah diminta: " + requestedQty + "\n\n" +
-                                                "Silakan kurangi jumlah atau periksa stok terlebih dahulu.")
-                                        .setPositiveButton("Mengerti", null)
-                                        .show();
-                                return;
-                            }
+                            Intent intent = new Intent(CheckoutActivity.this, SuccessActivity.class);
+                            intent.putExtra("sale_id", saleId);
+                            intent.putExtra("invoice_no", invoiceNo);
+                            intent.putExtra("grand_total", grandTotalRes);
+                            intent.putExtra("paid_amount", paidAmountRes);
+                            intent.putExtra("change_amount", changeAmountRes);
+                            intent.putExtra("customer_name", customerName);
+                            startActivity(intent);
+                            
+                            // Close POS activity flow
+                            setResult(RESULT_OK);
+                            finish();
+                        } catch (Exception e) {
+                            CurrencyHelper.showError(binding.getRoot(), "Transaksi sukses, tapi gagal membaca response");
                         }
-                    } catch (Exception e) {}
-                    CurrencyHelper.showError(binding.getRoot(), errorMsg);
-                }
-            }
+                    } else if (response.code() == 401) {
+                        handleUnauthorized();
+                    } else {
+                        String errorMsg = "Gagal memproses transaksi";
+                        try {
+                            if (response.errorBody() != null) {
+                                String errorBodyStr = response.errorBody().string();
+                                JsonObject err = new com.google.gson.JsonParser()
+                                        .parse(errorBodyStr).getAsJsonObject();
+                                if (err.has("message")) errorMsg = err.get("message").getAsString();
 
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
-            }
-        });
+                                // Check if stock error with data
+                                if (errorMsg.contains("Stok") && err.has("data") && !err.get("data").isJsonNull()) {
+                                    JsonObject errData = err.getAsJsonObject("data");
+                                    int availableStock = errData.has("available_stock") ? errData.get("available_stock").getAsInt() : 0;
+                                    int requestedQty = errData.has("requested_qty") ? errData.get("requested_qty").getAsInt() : 0;
+                                    int errProductId = errData.has("product_id") ? errData.get("product_id").getAsInt() : 0;
+
+                                    // Find product name from cart
+                                    String errProductName = "Produk";
+                                    for (CartItem ci : cartList) {
+                                        if (ci.getProduct().getId() == errProductId) {
+                                            errProductName = ci.getProduct().getProductName();
+                                            break;
+                                        }
+                                    }
+
+                                    new androidx.appcompat.app.AlertDialog.Builder(CheckoutActivity.this)
+                                            .setTitle("⚠️ Stok Tidak Cukup")
+                                            .setMessage("Stok " + errProductName + " tidak mencukupi!\n\n" +
+                                                    "📦 Stok tersedia: " + availableStock + "\n" +
+                                                    "🛒 Jumlah diminta: " + requestedQty + "\n\n" +
+                                                    "Silakan kurangi jumlah atau periksa stok terlebih dahulu.")
+                                            .setPositiveButton("Mengerti", null)
+                                            .show();
+                                    return;
+                                }
+                            }
+                        } catch (Exception e) {}
+                        CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    setLoading(false);
+                    CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+                }
+            });
+        }, 1000);
     }
 
     private void setLoading(boolean loading) {

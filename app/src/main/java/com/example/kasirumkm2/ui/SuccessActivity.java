@@ -1,5 +1,6 @@
 package com.example.kasirumkm2.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -47,6 +48,12 @@ public class SuccessActivity extends AppCompatActivity {
     private void setupListeners() {
         binding.btnPrintReceipt.setOnClickListener(v -> printReceipt());
         binding.btnNewTransaction.setOnClickListener(v -> finish());
+        binding.btnMainMenu.setOnClickListener(v -> {
+            Intent intent = new Intent(SuccessActivity.this, com.example.kasirumkm2.MainActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
     }
 
     private void printReceipt() {

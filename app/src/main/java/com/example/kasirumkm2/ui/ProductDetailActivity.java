@@ -14,6 +14,7 @@ import com.example.kasirumkm2.data.Product;
 import com.example.kasirumkm2.databinding.ActivityProductDetailBinding;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;
@@ -27,6 +28,10 @@ public class ProductDetailActivity extends AppCompatActivity {
     private final Gson gson = new Gson();
     private int productId = -1;
     private Product currentProduct;
+
+    private int userGroupId = 1;
+    private int freelancerGroupId = 2;
+    private int grosirGroupId = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +55,42 @@ public class ProductDetailActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadProductDetails();
+        loadCustomerGroupsAndDetails();
+    }
+
+    private void loadCustomerGroupsAndDetails() {
+        setLoading(true);
+        apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray data = response.body().getAsJsonArray("data");
+                        for (int i = 0; i < data.size(); i++) {
+                            JsonObject obj = data.get(i).getAsJsonObject();
+                            int id = obj.get("id").getAsInt();
+                            String code = obj.get("group_code").getAsString();
+                            
+                            if ("USER".equalsIgnoreCase(code)) {
+                                userGroupId = id;
+                            } else if ("FREELANCER".equalsIgnoreCase(code)) {
+                                freelancerGroupId = id;
+                            } else if ("GROSIR".equalsIgnoreCase(code)) {
+                                grosirGroupId = id;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                loadProductDetails();
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                loadProductDetails();
+            }
+        });
     }
 
     private void setupToolbar() {
@@ -120,18 +160,18 @@ public class ProductDetailActivity extends AppCompatActivity {
         // Prices & Profit Margin Calculation
         double cost = currentProduct.getCostPrice();
 
-        // USER Group ID: 1
-        double priceUser = currentProduct.getSellingPrice(1);
+        // USER Group
+        double priceUser = currentProduct.getSellingPrice(userGroupId);
         binding.tvPriceUser.setText(CurrencyHelper.formatRupiah(priceUser));
         binding.tvMarginUser.setText(calculateMarginText(cost, priceUser));
 
-        // FREELANCER Group ID: 2
-        double priceFreelancer = currentProduct.getSellingPrice(2);
+        // FREELANCER Group
+        double priceFreelancer = currentProduct.getSellingPrice(freelancerGroupId);
         binding.tvPriceFreelancer.setText(CurrencyHelper.formatRupiah(priceFreelancer));
         binding.tvMarginFreelancer.setText(calculateMarginText(cost, priceFreelancer));
 
-        // GROSIR Group ID: 3
-        double priceGrosir = currentProduct.getSellingPrice(3);
+        // GROSIR Group
+        double priceGrosir = currentProduct.getSellingPrice(grosirGroupId);
         binding.tvPriceGrosir.setText(CurrencyHelper.formatRupiah(priceGrosir));
         binding.tvMarginGrosir.setText(calculateMarginText(cost, priceGrosir));
     }

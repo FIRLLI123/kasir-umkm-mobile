@@ -33,6 +33,7 @@ public class ProductListActivity extends AppCompatActivity {
     private ApiService apiService;
     private ProductAdapter adapter;
     private final Gson gson = new Gson();
+    private int userGroupId = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +49,7 @@ public class ProductListActivity extends AppCompatActivity {
         setupFab();
         setupSwipeRefresh();
 
-        loadProducts();
+        loadCustomerGroupsAndProducts();
     }
 
     private void setupToolbar() {
@@ -89,7 +90,39 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void setupSwipeRefresh() {
         binding.swipeRefresh.setColorSchemeColors(getColor(R.color.primary));
-        binding.swipeRefresh.setOnRefreshListener(this::loadProducts);
+        binding.swipeRefresh.setOnRefreshListener(this::loadCustomerGroupsAndProducts);
+    }
+
+    private void loadCustomerGroupsAndProducts() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+        apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray data = response.body().getAsJsonArray("data");
+                        for (int i = 0; i < data.size(); i++) {
+                            JsonObject obj = data.get(i).getAsJsonObject();
+                            int id = obj.get("id").getAsInt();
+                            String code = obj.get("group_code").getAsString();
+                            if ("USER".equalsIgnoreCase(code)) {
+                                userGroupId = id;
+                                adapter.setUserGroupId(userGroupId);
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                loadProducts();
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                loadProducts();
+            }
+        });
     }
 
     private void loadProducts() {
@@ -151,6 +184,6 @@ public class ProductListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadProducts();
+        loadCustomerGroupsAndProducts();
     }
 }

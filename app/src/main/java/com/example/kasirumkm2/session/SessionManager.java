@@ -102,6 +102,9 @@ public class SessionManager {
         editor.remove(Config.KEY_USER_NAME);
         editor.remove(Config.KEY_USER_EMAIL);
         editor.remove(Config.KEY_USER_ROLE);
+        editor.remove(Config.KEY_COMPANY_ID);
+        editor.remove(Config.KEY_COMPANY_NAME);
+        editor.remove(Config.KEY_COMPANY_CODE);
         editor.putBoolean(Config.KEY_IS_LOGGED_IN, false);
         editor.apply();
     }
@@ -127,6 +130,37 @@ public class SessionManager {
      */
     public String getSavedPassword() {
         return prefs.getString(Config.KEY_SAVED_PASSWORD, "");
+    }
+
+    /**
+     * Save active company details
+     */
+    public void saveCompany(int id, String name, String code) {
+        editor.putInt(Config.KEY_COMPANY_ID, id);
+        editor.putString(Config.KEY_COMPANY_NAME, name);
+        editor.putString(Config.KEY_COMPANY_CODE, code);
+        editor.apply();
+    }
+
+    /**
+     * Get active company ID
+     */
+    public int getCompanyId() {
+        return prefs.getInt(Config.KEY_COMPANY_ID, 0);
+    }
+
+    /**
+     * Get active company Name
+     */
+    public String getCompanyName() {
+        return prefs.getString(Config.KEY_COMPANY_NAME, "");
+    }
+
+    /**
+     * Get active company Code
+     */
+    public String getCompanyCode() {
+        return prefs.getString(Config.KEY_COMPANY_CODE, "");
     }
 
     /**

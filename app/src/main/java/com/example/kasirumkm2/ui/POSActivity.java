@@ -32,6 +32,7 @@ import retrofit2.Response;
 public class POSActivity extends AppCompatActivity {
 
     private static final int REQUEST_CHOOSE_CUSTOMER = 100;
+    private static final int REQUEST_CHECKOUT = 200;
 
     private ActivityPosBinding binding;
     private ApiService apiService;
@@ -41,10 +42,14 @@ public class POSActivity extends AppCompatActivity {
     private final List<Product> productList = new ArrayList<>();
     private final List<CartItem> cartList = new ArrayList<>();
 
-    // Default Customer is Pelanggan Umum (USER, Group ID = 1)
-    private int selectedCustomerId = 0;
-    private String selectedCustomerName = "Pelanggan Umum (USER)";
-    private int selectedCustomerGroupId = 1;
+    // Initial Customer is not chosen
+    private int selectedCustomerId = -1;
+    private String selectedCustomerName = "Pilih Customer...";
+    private int selectedCustomerGroupId = -1;
+
+    private int userGroupId = 1;
+    private int freelancerGroupId = 2;
+    private int grosirGroupId = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +66,46 @@ public class POSActivity extends AppCompatActivity {
         setupSwipeRefresh();
         setupCheckoutPanel();
 
-        loadProducts();
+        loadCustomerGroups();
+    }
+
+    private void loadCustomerGroups() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+        apiService.getCustomerGroups().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray data = response.body().getAsJsonArray("data");
+                        for (int i = 0; i < data.size(); i++) {
+                            JsonObject obj = data.get(i).getAsJsonObject();
+                            int id = obj.get("id").getAsInt();
+                            String code = obj.get("group_code").getAsString();
+                            
+                            if ("USER".equalsIgnoreCase(code)) {
+                                userGroupId = id;
+                                if (selectedCustomerId <= 0) {
+                                    selectedCustomerGroupId = id;
+                                }
+                            } else if ("FREELANCER".equalsIgnoreCase(code)) {
+                                freelancerGroupId = id;
+                            } else if ("GROSIR".equalsIgnoreCase(code)) {
+                                grosirGroupId = id;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                }
+                updateCustomerDisplay();
+                loadProducts();
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                loadProducts();
+            }
+        });
     }
 
     private void setupToolbar() {
@@ -128,7 +172,7 @@ public class POSActivity extends AppCompatActivity {
             intent.putExtra("customer_id", selectedCustomerId);
             intent.putExtra("customer_name", selectedCustomerName);
             intent.putExtra("customer_group_id", selectedCustomerGroupId);
-            startActivity(intent);
+            startActivityForResult(intent, REQUEST_CHECKOUT);
         });
         updateCheckoutPanel();
     }
@@ -244,15 +288,24 @@ public class POSActivity extends AppCompatActivity {
 
         binding.tvTotalItems.setText(totalItems + " Item");
         binding.tvTotalPrice.setText(CurrencyHelper.formatRupiah(totalPrice));
-        binding.btnCheckout.setEnabled(totalItems > 0);
-        binding.btnCheckout.setText(totalItems > 0 ? "Bayar (" + totalItems + ")" : "Bayar");
+        
+        boolean customerSelected = selectedCustomerId > 0;
+        binding.btnCheckout.setEnabled(totalItems > 0 && customerSelected);
+        if (totalItems > 0 && !customerSelected) {
+            binding.btnCheckout.setText("Pilih Customer Dulu");
+        } else {
+            binding.btnCheckout.setText(totalItems > 0 ? "Bayar (" + totalItems + ")" : "Bayar");
+        }
     }
 
     private void updateCustomerDisplay() {
         binding.tvCustomerName.setText(selectedCustomerName);
-        String groupName = "USER / Reguler";
-        if (selectedCustomerGroupId == 2) groupName = "FREELANCER";
-        else if (selectedCustomerGroupId == 3) groupName = "GROSIR";
+        String groupName = "Belum Terpilih";
+        if (selectedCustomerId > 0) {
+            if (selectedCustomerGroupId == freelancerGroupId) groupName = "FREELANCER";
+            else if (selectedCustomerGroupId == grosirGroupId) groupName = "GROSIR";
+            else groupName = "USER / Reguler";
+        }
 
         binding.tvCustomerGroup.setText("Golongan: " + groupName);
         binding.btnChooseCustomer.setText(selectedCustomerId > 0 ? "Ganti" : "Pilih");
@@ -280,6 +333,18 @@ public class POSActivity extends AppCompatActivity {
             updateCheckoutPanel();
 
             CurrencyHelper.showToast(this, "Customer diubah ke: " + selectedCustomerName);
+        } else if (requestCode == REQUEST_CHECKOUT && resultCode == RESULT_OK) {
+            // Reset cart list
+            cartList.clear();
+            
+            // Reset customer selection to default (unset)
+            selectedCustomerId = -1;
+            selectedCustomerName = "Pilih Customer...";
+            selectedCustomerGroupId = userGroupId;
+
+            updateCustomerDisplay();
+            updateCheckoutPanel();
+            adapter.setCartState(cartList, selectedCustomerGroupId);
         }
     }
 
@@ -300,7 +365,7 @@ public class POSActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Load products to reflect any price/stock updates from ProductForm/Detail activities
-        loadProducts();
+        // Load customer groups first to ensure dynamic pricing matches correctly
+        loadCustomerGroups();
     }
 }

@@ -20,6 +20,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     private List<Product> productList = new ArrayList<>();
     private List<Product> filteredList = new ArrayList<>();
     private OnProductClickListener listener;
+    private int userGroupId = 1; // Default fallback
 
     public interface OnProductClickListener {
         void onProductClick(Product product);
@@ -32,6 +33,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
     public void setData(List<Product> data) {
         this.productList = data;
         this.filteredList = new ArrayList<>(data);
+        notifyDataSetChanged();
+    }
+
+    public void setUserGroupId(int userGroupId) {
+        this.userGroupId = userGroupId;
         notifyDataSetChanged();
     }
 
@@ -68,8 +74,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         holder.tvCode.setText(product.getProductCode() != null ? product.getProductCode() : "");
         holder.tvStock.setText("Stok: " + product.getStock() + " " + (product.getUnit() != null ? product.getUnit() : "pcs"));
 
-        // Use selling price for Group ID 1 (User / Regular price) by default
-        double price = product.getSellingPrice(1);
+        // Use dynamic selling price based on dynamic userGroupId
+        double price = product.getSellingPrice(userGroupId);
         holder.tvPrice.setText(CurrencyHelper.formatRupiah(price));
 
         holder.itemView.setOnClickListener(v -> {

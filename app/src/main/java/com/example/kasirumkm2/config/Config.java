@@ -3,7 +3,7 @@ package com.example.kasirumkm2.config;
 public class Config {
 
     // Base URL - untuk emulator Android Studio
-//    public static final String BASE_URL = "http://192.168.0.106:8000/api/";
+//    public static final String BASE_URL = "http://192.168.7.100:8000/api/";
     public static final String BASE_URL = "https://stagingsekolahtu.masalihsan.sch.id/api/";
 
     // App Info
@@ -34,4 +34,9 @@ public class Config {
     // Remembered Credentials
     public static final String KEY_SAVED_EMAIL = "saved_email";
     public static final String KEY_SAVED_PASSWORD = "saved_password";
+
+    // Company Settings
+    public static final String KEY_COMPANY_ID = "company_id";
+    public static final String KEY_COMPANY_NAME = "company_name";
+    public static final String KEY_COMPANY_CODE = "company_code";
 }

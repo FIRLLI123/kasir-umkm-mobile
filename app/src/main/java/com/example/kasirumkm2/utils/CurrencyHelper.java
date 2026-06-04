@@ -40,6 +40,23 @@ public class CurrencyHelper {
     }
 
     /**
+     * Parse double value from formatted number or rupiah string
+     */
+    public static double parseDouble(String valueStr) {
+        if (valueStr == null || valueStr.isEmpty()) return 0;
+        try {
+            // Remove Rp prefix, dot grouping separators, and replace comma decimals with dots
+            String clean = valueStr.replace("Rp", "")
+                    .replace(".", "")
+                    .replace(",", ".")
+                    .replaceAll("\\s+", "");
+            return Double.parseDouble(clean);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /**
      * Format tanggal dari API (yyyy-MM-dd HH:mm:ss) ke display (dd/MM/yyyy HH:mm)
      */
     public static String formatDateTime(String dateTimeStr) {

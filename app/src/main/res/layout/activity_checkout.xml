@@ -281,10 +281,12 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnPay"
                 style="@style/Widget.KasirUmkm.Button.Primary"
-                android:layout_width="160dp"
-                android:layout_height="48dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="140dp"
+                android:minHeight="48dp"
                 android:text="Proses Transaksi"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

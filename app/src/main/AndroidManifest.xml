@@ -77,5 +77,13 @@
         <!-- Settings -->
         <activity android:name=".ui.ProfileActivity" android:exported="false" />
 
+        <!-- Company Management -->
+        <activity android:name=".ui.CompanyActivity" android:exported="false" />
+        <activity android:name=".ui.CompanyFormActivity" android:exported="false" />
+
+        <!-- User Management -->
+        <activity android:name=".ui.UserActivity" android:exported="false" />
+        <activity android:name=".ui.UserFormActivity" android:exported="false" />
+
     </application>
 </manifest>
