@@ -13,6 +13,7 @@ import com.example.kasirumkm2.ui.LoginActivity;
 import com.example.kasirumkm2.ui.ReportFragment;
 import com.example.kasirumkm2.ui.SettingsFragment;
 import com.example.kasirumkm2.ui.POSActivity;
+import com.example.kasirumkm2.ui.ChatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
                 // Launch POS as separate activity
                 startActivity(new Intent(this, POSActivity.class));
                 return false; // Don't switch tab, stay on current
+            } else if (id == R.id.nav_chat) {
+                // Launch AI Chat as standalone activity
+                startActivity(new Intent(this, ChatActivity.class));
+                return false; // Don't switch tab
             } else if (id == R.id.nav_laporan) {
                 loadFragment(new ReportFragment());
                 return true;

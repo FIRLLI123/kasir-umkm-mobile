@@ -163,4 +163,9 @@ public interface ApiService {
 
     @DELETE("users/{id}")
     Call<JsonObject> deleteUser(@Path("id") int id);
+
+    // ======================== AI CHAT ========================
+
+    @POST("ai/chat")
+    Call<JsonObject> chatWithAI(@Body JsonObject body);
 }

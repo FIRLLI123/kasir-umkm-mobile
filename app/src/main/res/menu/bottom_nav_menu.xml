@@ -13,7 +13,12 @@
         android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="@string/nav_laporan" />
     <item
+        android:id="@+id/nav_chat"
+        android:icon="@drawable/ic_chat_ai"
+        android:title="@string/nav_chat" />
+    <item
         android:id="@+id/nav_pengaturan"
         android:icon="@android:drawable/ic_menu_manage"
         android:title="@string/nav_pengaturan" />
 </menu>
+

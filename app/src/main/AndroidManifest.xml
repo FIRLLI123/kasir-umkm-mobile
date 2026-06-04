@@ -85,5 +85,8 @@
         <activity android:name=".ui.UserActivity" android:exported="false" />
         <activity android:name=".ui.UserFormActivity" android:exported="false" />
 
+        <!-- AI Chatbot -->
+        <activity android:name=".ui.ChatActivity" android:exported="false" />
+
     </application>
 </manifest>

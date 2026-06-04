@@ -31,7 +31,24 @@
     <string name="nav_home">Home</string>
     <string name="nav_kasir">Kasir</string>
     <string name="nav_laporan">Laporan</string>
+    <string name="nav_chat">Asisten AI</string>
     <string name="nav_pengaturan">Pengaturan</string>
+
+    <!-- AI Chatbot -->
+    <string name="chat_title">Asisten AI</string>
+    <string name="chat_subtitle">Powered by Groq</string>
+    <string name="chat_hint">Ketik pesan...</string>
+    <string name="chat_empty_title">Halo! Saya Asisten AI Kasir</string>
+    <string name="chat_empty_desc">Saya siap membantu kamu memahami aplikasi dan menjawab pertanyaan seputar bisnis kasir kamu.</string>
+    <string name="chat_quick_prompt_label">Coba tanya ini:</string>
+    <string name="chat_prompt_1">💡  Jelaskan fitur aplikasi ini</string>
+    <string name="chat_prompt_2">🧾  Bagaimana cara input penjualan?</string>
+    <string name="chat_prompt_3">📊  Bagaimana cara melihat laporan?</string>
+    <string name="chat_prompt_4">📦  Bagaimana cara cek stok?</string>
+    <string name="chat_clear_title">Hapus Percakapan</string>
+    <string name="chat_clear_message">Semua pesan akan dihapus. Lanjutkan?</string>
+    <string name="chat_status_ready">Powered by Groq · Siap membantu</string>
+    <string name="chat_status_typing">Asisten AI sedang mengetik...</string>
 
     <!-- POS -->
     <string name="transaksi_baru">Transaksi Baru</string>
