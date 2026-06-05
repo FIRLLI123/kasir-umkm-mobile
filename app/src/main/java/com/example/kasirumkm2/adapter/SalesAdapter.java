@@ -29,9 +29,21 @@ public class SalesAdapter extends RecyclerView.Adapter<SalesAdapter.ViewHolder> 
     }
 
     public void setData(List<JsonObject> data) {
-        this.salesList = data;
+        this.salesList = new ArrayList<>(data);
         notifyDataSetChanged();
     }
+
+    public void addData(List<JsonObject> data) {
+        int startPosition = this.salesList.size();
+        this.salesList.addAll(data);
+        notifyItemRangeInserted(startPosition, data.size());
+    }
+
+    public void clearData() {
+        this.salesList.clear();
+        notifyDataSetChanged();
+    }
+
 
     @NonNull
     @Override
@@ -71,7 +83,7 @@ public class SalesAdapter extends RecyclerView.Adapter<SalesAdapter.ViewHolder> 
 
         // Status styling
         String status = sale.has("status") ? sale.get("status").getAsString() : "00";
-        if ("01".equals(status)) {
+        if ("01".equals(status) || "98".equals(status)) {
             // Voided
             holder.tvAmount.setTextColor(holder.itemView.getContext().getColor(R.color.danger_red));
             holder.tvIcon.setText("❌");

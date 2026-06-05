@@ -241,7 +241,7 @@ public class PrinterManager {
                 printerHelper.write(PrinterFormatter.ESC_DOUBLE_SIZE_OFF);
                 printerHelper.write(PrinterFormatter.ESC_BOLD_OFF);
                 
-                writeText("Kasir UMKM Mobile\n");
+                writeText("TANYA KASIR Mobile\n");
                 printerHelper.write(PrinterFormatter.ESC_ALIGN_LEFT);
                 writeText(PrinterFormatter.getDivider() + "\n");
                 

@@ -7,7 +7,7 @@ public class Config {
     public static final String BASE_URL = "https://stagingsekolahtu.masalihsan.sch.id/api/";
 
     // App Info
-    public static final String APP_NAME = "Kasir UMKM";
+    public static final String APP_NAME = "TANYA KASIR";
 
     // Network
     public static final int TIMEOUT_CONNECT = 30; // seconds

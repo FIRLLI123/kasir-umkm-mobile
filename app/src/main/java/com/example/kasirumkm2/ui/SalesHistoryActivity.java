@@ -19,11 +19,15 @@ import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.adapter.SalesAdapter;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
+import com.example.kasirumkm2.data.LoginRequest;
 import com.example.kasirumkm2.databinding.ActivitySalesHistoryBinding;
 import com.example.kasirumkm2.session.SessionManager;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
@@ -50,6 +54,14 @@ public class SalesHistoryActivity extends AppCompatActivity {
     private String endDate = "";
     private final SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("dd MMM yyyy", new Locale("id", "ID"));
+
+    // Pagination states
+    private int currentPage = 1;
+    private int lastPage = 1;
+    private boolean isLoading = false;
+    private String searchQuery = "";
+    private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +90,32 @@ public class SalesHistoryActivity extends AppCompatActivity {
         binding.rvSales.setAdapter(adapter);
 
         binding.swipeRefresh.setColorSchemeColors(getColor(R.color.primary));
-        binding.swipeRefresh.setOnRefreshListener(this::loadSalesHistory);
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            currentPage = 1;
+            loadSalesHistory(true);
+        });
+
+        binding.rvSales.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if (!isLoading && currentPage < lastPage) {
+                        if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 3
+                                && firstVisibleItemPosition >= 0) {
+                            currentPage++;
+                            loadSalesHistory(false);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void setupFilters() {
@@ -95,7 +132,15 @@ public class SalesHistoryActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filterSalesLocal(s.toString());
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                searchRunnable = () -> {
+                    searchQuery = s.toString().trim();
+                    currentPage = 1;
+                    loadSalesHistory(true);
+                };
+                searchHandler.postDelayed(searchRunnable, 400); // 400ms debounce
             }
 
             @Override
@@ -108,7 +153,8 @@ public class SalesHistoryActivity extends AppCompatActivity {
         startDate = today;
         endDate = today;
         updateDateRangeLabel();
-        loadSalesHistory();
+        currentPage = 1;
+        loadSalesHistory(true);
     }
 
     private void selectWeeklyFilter() {
@@ -121,7 +167,8 @@ public class SalesHistoryActivity extends AppCompatActivity {
         endDate = apiDateFormat.format(cal.getTime());
         
         updateDateRangeLabel();
-        loadSalesHistory();
+        currentPage = 1;
+        loadSalesHistory(true);
     }
 
     private void selectMonthlyFilter() {
@@ -133,7 +180,8 @@ public class SalesHistoryActivity extends AppCompatActivity {
         endDate = apiDateFormat.format(cal.getTime());
         
         updateDateRangeLabel();
-        loadSalesHistory();
+        currentPage = 1;
+        loadSalesHistory(true);
     }
 
     private void showCustomDatePicker() {
@@ -147,7 +195,8 @@ public class SalesHistoryActivity extends AppCompatActivity {
                 startDate = apiDateFormat.format(new Date(selection.first));
                 endDate = apiDateFormat.format(new Date(selection.second));
                 updateDateRangeLabel();
-                loadSalesHistory();
+                currentPage = 1;
+                loadSalesHistory(true);
             }
         });
 
@@ -172,75 +221,107 @@ public class SalesHistoryActivity extends AppCompatActivity {
         }
     }
 
-    private void loadSalesHistory() {
-        setLoading(true);
+    private void loadSalesHistory(boolean isRefreshOrSearch) {
+        if (isLoading) return;
+        isLoading = true;
+
+        if (isRefreshOrSearch) {
+            setLoading(true);
+            binding.progressBarLoadMore.setVisibility(View.GONE);
+        } else {
+            binding.progressBarLoadMore.setVisibility(View.VISIBLE);
+        }
+
         Map<String, String> filters = new HashMap<>();
         filters.put("start_date", startDate);
         filters.put("end_date", endDate);
+        filters.put("page", String.valueOf(currentPage));
+        filters.put("per_page", "15");
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            filters.put("search", searchQuery);
+        }
 
         apiService.getSalesFiltered(filters).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                isLoading = false;
                 setLoading(false);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
 
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         JsonObject body = response.body();
-                        JsonArray dataArray = body.getAsJsonArray("data");
-                        allSales.clear();
 
-                        for (int i = 0; i < dataArray.size(); i++) {
-                            allSales.add(dataArray.get(i).getAsJsonObject());
+                        // Try to parse pagination meta info from the response root
+                        if (body.has("meta") && !body.get("meta").isJsonNull()) {
+                            JsonObject meta = body.getAsJsonObject("meta");
+                            if (meta.has("current_page")) {
+                                currentPage = meta.get("current_page").getAsInt();
+                            }
+                            if (meta.has("last_page")) {
+                                lastPage = meta.get("last_page").getAsInt();
+                            }
+                        } else if (body.has("data") && body.get("data").isJsonObject()) {
+                            JsonObject dataObj = body.getAsJsonObject("data");
+                            if (dataObj.has("current_page")) {
+                                currentPage = dataObj.get("current_page").getAsInt();
+                            }
+                            if (dataObj.has("last_page")) {
+                                lastPage = dataObj.get("last_page").getAsInt();
+                            }
                         }
 
-                        // Apply search filter if there's text
-                        filterSalesLocal(binding.etSearch.getText().toString());
+                        // Extract data array
+                        JsonArray dataArray = new JsonArray();
+                        if (body.has("data")) {
+                            if (body.get("data").isJsonArray()) {
+                                dataArray = body.getAsJsonArray("data");
+                            } else if (body.get("data").isJsonObject()) {
+                                JsonObject paginatedData = body.getAsJsonObject("data");
+                                if (paginatedData.has("data") && paginatedData.get("data").isJsonArray()) {
+                                    dataArray = paginatedData.getAsJsonArray("data");
+                                }
+                            }
+                        }
+
+                        List<JsonObject> sales = new ArrayList<>();
+                        for (int i = 0; i < dataArray.size(); i++) {
+                            sales.add(dataArray.get(i).getAsJsonObject());
+                        }
+
+                        if (isRefreshOrSearch) {
+                            allSales.clear();
+                        }
+                        allSales.addAll(sales);
+
+                        if (isRefreshOrSearch) {
+                            adapter.setData(allSales);
+                        } else {
+                            adapter.addData(sales);
+                        }
+
+                        showEmptyState(adapter.getItemCount() == 0);
                     } catch (Exception e) {
-                        showEmptyState(true);
+                        showEmptyState(adapter.getItemCount() == 0);
                     }
                 } else if (response.code() == 401) {
                     handleUnauthorized();
                 } else {
-                    showEmptyState(true);
+                    showEmptyState(adapter.getItemCount() == 0);
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
+                isLoading = false;
                 setLoading(false);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
                 Toast.makeText(SalesHistoryActivity.this, "Gagal memuat data transaksi", Toast.LENGTH_SHORT).show();
-                showEmptyState(true);
+                showEmptyState(adapter.getItemCount() == 0);
             }
         });
-    }
-
-    private void filterSalesLocal(String query) {
-        if (query.trim().isEmpty()) {
-            adapter.setData(allSales);
-            showEmptyState(allSales.isEmpty());
-            return;
-        }
-
-        List<JsonObject> filtered = new ArrayList<>();
-        String lowerQuery = query.toLowerCase(Locale.getDefault());
-
-        for (JsonObject sale : allSales) {
-            String invoice = sale.has("invoice_no") ? sale.get("invoice_no").getAsString().toLowerCase(Locale.getDefault()) : "";
-            
-            String customerName = "";
-            if (sale.has("customer") && !sale.get("customer").isJsonNull()) {
-                customerName = sale.getAsJsonObject("customer").get("customer_name").getAsString().toLowerCase(Locale.getDefault());
-            }
-
-            if (invoice.contains(lowerQuery) || customerName.contains(lowerQuery)) {
-                filtered.add(sale);
-            }
-        }
-
-        adapter.setData(filtered);
-        showEmptyState(filtered.isEmpty());
     }
 
     private void showSaleDetailsBottomSheet(JsonObject saleHeader) {
@@ -265,6 +346,9 @@ public class SalesHistoryActivity extends AppCompatActivity {
         LinearLayout layoutItems = view.findViewById(R.id.layoutSheetItems);
         View layoutCashDetails = view.findViewById(R.id.layoutSheetCashDetails);
         View btnReprint = view.findViewById(R.id.btnSheetReprint);
+        MaterialButton btnVoid = view.findViewById(R.id.btnSheetVoid);
+        LinearLayout layoutVoidInfo = view.findViewById(R.id.layoutVoidInfo);
+        TextView tvVoidReason = view.findViewById(R.id.tvVoidReason);
 
         // Set basic header details immediately from list item
         String invoiceNo = saleHeader.has("invoice_no") ? saleHeader.get("invoice_no").getAsString() : "-";
@@ -274,9 +358,27 @@ public class SalesHistoryActivity extends AppCompatActivity {
         if ("98".equals(status) || "01".equals(status)) {
             tvStatus.setText("VOIDED");
             tvStatus.setBackgroundResource(R.drawable.bg_badge_danger);
+
+            // Show void info and hide void button
+            btnVoid.setVisibility(View.GONE);
+            layoutVoidInfo.setVisibility(View.VISIBLE);
+
+            // Try to get void reason from header data
+            if (saleHeader.has("void_reason") && !saleHeader.get("void_reason").isJsonNull()) {
+                tvVoidReason.setText("Alasan: " + saleHeader.get("void_reason").getAsString());
+            }
+        } else if ("00".equals(status)) {
+            tvStatus.setText("SUKSES");
+            tvStatus.setBackgroundResource(R.drawable.bg_badge_success);
+
+            // Show void button only for successful transactions
+            btnVoid.setVisibility(View.VISIBLE);
+            layoutVoidInfo.setVisibility(View.GONE);
         } else {
             tvStatus.setText("SUKSES");
             tvStatus.setBackgroundResource(R.drawable.bg_badge_success);
+            btnVoid.setVisibility(View.GONE);
+            layoutVoidInfo.setVisibility(View.GONE);
         }
 
         String rawDate = saleHeader.has("created_at") ? saleHeader.get("created_at").getAsString() : "-";
@@ -330,6 +432,12 @@ public class SalesHistoryActivity extends AppCompatActivity {
                     try {
                         JsonObject dataObj = response.body().getAsJsonObject("data");
                         fullSaleData[0] = dataObj;
+
+                        // Update void reason from detailed data if available
+                        if (dataObj.has("void_reason") && !dataObj.get("void_reason").isJsonNull()) {
+                            tvVoidReason.setText("Alasan: " + dataObj.get("void_reason").getAsString());
+                        }
+
                         if (dataObj.has("items")) {
                             JsonArray itemsArray = dataObj.getAsJsonArray("items");
                             layoutItems.removeAllViews();
@@ -378,8 +486,268 @@ public class SalesHistoryActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
+        // Void Transaksi action listener — Step 1: Warning Dialog
+        btnVoid.setOnClickListener(v -> {
+            showVoidWarningDialog(saleId, invoiceNo, grandTotal, dialog);
+        });
+
         dialog.show();
     }
+
+    // ======================== VOID FLOW ========================
+
+    /**
+     * Step 1: Show warning dialog — "Are you sure you want to void this transaction?"
+     */
+    private void showVoidWarningDialog(int saleId, String invoiceNo, double grandTotal, BottomSheetDialog parentDialog) {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.void_warning_title))
+                .setMessage(getString(R.string.void_warning_message))
+                .setPositiveButton("Ya, Lanjutkan", (d, w) -> {
+                    d.dismiss();
+                    showVoidReasonDialog(saleId, invoiceNo, grandTotal, parentDialog);
+                })
+                .setNegativeButton("Batal", (d, w) -> d.dismiss())
+                .setCancelable(true)
+                .show();
+    }
+
+    /**
+     * Step 2: Show void reason input dialog — user must provide reason (min 10 chars)
+     */
+    private void showVoidReasonDialog(int saleId, String invoiceNo, double grandTotal, BottomSheetDialog parentDialog) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_void_reason, null);
+        builder.setView(dialogView);
+        builder.setCancelable(false);
+
+        AlertDialog reasonDialog = builder.create();
+        if (reasonDialog.getWindow() != null) {
+            reasonDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Bind views
+        TextView tvVoidInvoice = dialogView.findViewById(R.id.tvVoidInvoice);
+        TextInputLayout tilVoidReason = dialogView.findViewById(R.id.tilVoidReason);
+        TextInputEditText etVoidReason = dialogView.findViewById(R.id.etVoidReason);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btnVoidReasonCancel);
+        MaterialButton btnContinue = dialogView.findViewById(R.id.btnVoidReasonContinue);
+
+        tvVoidInvoice.setText(invoiceNo);
+
+        // Text watcher for validation — enable button only when >= 10 chars
+        etVoidReason.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                int length = s.toString().trim().length();
+                btnContinue.setEnabled(length >= 10);
+
+                if (length > 0 && length < 10) {
+                    tilVoidReason.setError("Minimal 10 karakter (" + length + "/10)");
+                } else {
+                    tilVoidReason.setError(null);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        btnCancel.setOnClickListener(v -> reasonDialog.dismiss());
+
+        btnContinue.setOnClickListener(v -> {
+            String reason = etVoidReason.getText() != null ? etVoidReason.getText().toString().trim() : "";
+            if (reason.length() < 10) {
+                tilVoidReason.setError(getString(R.string.void_reason_too_short));
+                return;
+            }
+            reasonDialog.dismiss();
+            showVoidPasswordDialog(saleId, invoiceNo, grandTotal, reason, parentDialog);
+        });
+
+        reasonDialog.show();
+    }
+
+    /**
+     * Step 3: Show password verification dialog — user must re-enter login password
+     */
+    private void showVoidPasswordDialog(int saleId, String invoiceNo, double grandTotal, String voidReason, BottomSheetDialog parentDialog) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_void_password, null);
+        builder.setView(dialogView);
+        builder.setCancelable(false);
+
+        AlertDialog passwordDialog = builder.create();
+        if (passwordDialog.getWindow() != null) {
+            passwordDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        // Bind views
+        TextView tvConfirmInvoice = dialogView.findViewById(R.id.tvConfirmInvoice);
+        TextView tvConfirmTotal = dialogView.findViewById(R.id.tvConfirmTotal);
+        TextView tvConfirmReason = dialogView.findViewById(R.id.tvConfirmReason);
+        TextInputLayout tilVoidPassword = dialogView.findViewById(R.id.tilVoidPassword);
+        TextInputEditText etVoidPassword = dialogView.findViewById(R.id.etVoidPassword);
+        MaterialButton btnCancel = dialogView.findViewById(R.id.btnVoidPasswordCancel);
+        MaterialButton btnExecute = dialogView.findViewById(R.id.btnVoidExecute);
+
+        // Populate summary
+        tvConfirmInvoice.setText(invoiceNo);
+        tvConfirmTotal.setText(CurrencyHelper.formatRupiah(grandTotal));
+        tvConfirmReason.setText(voidReason);
+
+        btnCancel.setOnClickListener(v -> passwordDialog.dismiss());
+
+        btnExecute.setOnClickListener(v -> {
+            String password = etVoidPassword.getText() != null ? etVoidPassword.getText().toString().trim() : "";
+            if (password.isEmpty()) {
+                tilVoidPassword.setError("Password tidak boleh kosong");
+                return;
+            }
+            tilVoidPassword.setError(null);
+
+            // Disable button to prevent double-tap
+            btnExecute.setEnabled(false);
+            btnExecute.setText("Memverifikasi...");
+
+            // Verify password by attempting login with current email
+            verifyPasswordAndVoid(saleId, voidReason, password, tilVoidPassword, btnExecute, passwordDialog, parentDialog);
+        });
+
+        passwordDialog.show();
+    }
+
+    /**
+     * Verify password by calling login API, then execute void if successful
+     */
+    private void verifyPasswordAndVoid(int saleId, String voidReason, String password,
+                                        TextInputLayout tilPassword, MaterialButton btnExecute,
+                                        AlertDialog passwordDialog, BottomSheetDialog parentDialog) {
+        SessionManager session = new SessionManager(this);
+        String email = session.getUserEmail();
+        String deviceId = session.getDeviceId();
+        String deviceName = session.getDeviceName();
+
+        LoginRequest loginRequest = new LoginRequest(email, password, deviceId, deviceName);
+
+        apiService.login(loginRequest).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    JsonObject body = response.body();
+                    boolean success = body.has("success") && body.get("success").getAsBoolean();
+
+                    if (success) {
+                        // Password verified! Update token if backend returned new one
+                        if (body.has("data") && !body.get("data").isJsonNull()) {
+                            JsonObject data = body.getAsJsonObject("data");
+                            if (data.has("token") && !data.get("token").isJsonNull()) {
+                                String newToken = data.get("token").getAsString();
+                                session.saveSession(newToken, session.getUserId(),
+                                        session.getUserName(), email, session.getUserRole());
+                                // Reset API client with new token
+                                ApiClient.resetClient();
+                                apiService = ApiClient.getApiService(SalesHistoryActivity.this);
+                            }
+                        }
+
+                        // Now execute the void
+                        passwordDialog.dismiss();
+                        executeVoid(saleId, voidReason, parentDialog);
+                    } else {
+                        // Login failed — wrong password
+                        tilPassword.setError(getString(R.string.void_password_invalid));
+                        btnExecute.setEnabled(true);
+                        btnExecute.setText("🔒 Void Sekarang");
+                    }
+                } else {
+                    // Server error or invalid credentials
+                    tilPassword.setError(getString(R.string.void_password_invalid));
+                    btnExecute.setEnabled(true);
+                    btnExecute.setText("🔒 Void Sekarang");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                tilPassword.setError("Gagal menghubungi server: " + t.getMessage());
+                btnExecute.setEnabled(true);
+                btnExecute.setText("🔒 Void Sekarang");
+            }
+        });
+    }
+
+    /**
+     * Execute the actual void API call
+     */
+    private void executeVoid(int saleId, String voidReason, BottomSheetDialog parentDialog) {
+        // Show loading
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        progressBar.setPadding(32, 32, 32, 32);
+        AlertDialog loadingDialog = new AlertDialog.Builder(this)
+                .setView(progressBar)
+                .setMessage("Memproses void transaksi...")
+                .setCancelable(false)
+                .create();
+        loadingDialog.show();
+
+        JsonObject body = new JsonObject();
+        body.addProperty("void_reason", voidReason);
+
+        apiService.voidSale(saleId, body).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (!isFinishing()) {
+                    loadingDialog.dismiss();
+
+                    if (response.isSuccessful() && response.body() != null) {
+                        // Void successful!
+                        parentDialog.dismiss();
+                        Toast.makeText(SalesHistoryActivity.this, getString(R.string.void_success), Toast.LENGTH_LONG).show();
+
+                        // Refresh data
+                        currentPage = 1;
+                        loadSalesHistory(true);
+                    } else {
+                        // Try to parse error message
+                        String errorMsg = getString(R.string.void_failed);
+                        try {
+                            if (response.errorBody() != null) {
+                                String errStr = response.errorBody().string();
+                                JsonObject errObj = new com.google.gson.JsonParser().parse(errStr).getAsJsonObject();
+                                if (errObj.has("message")) {
+                                    errorMsg = errObj.get("message").getAsString();
+                                }
+                            }
+                        } catch (Exception ignored) {}
+
+                        new AlertDialog.Builder(SalesHistoryActivity.this)
+                                .setTitle("Void Gagal")
+                                .setMessage(errorMsg)
+                                .setPositiveButton("OK", null)
+                                .show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                if (!isFinishing()) {
+                    loadingDialog.dismiss();
+                    new AlertDialog.Builder(SalesHistoryActivity.this)
+                            .setTitle("Koneksi Gagal")
+                            .setMessage("Tidak dapat menghubungi server.\n" + t.getMessage())
+                            .setPositiveButton("OK", null)
+                            .show();
+                }
+            }
+        });
+    }
+
+    // ======================== END VOID FLOW ========================
 
     private void setLoading(boolean loading) {
         binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);

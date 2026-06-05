@@ -31,8 +31,10 @@ import com.google.gson.JsonObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -163,14 +165,18 @@ public class BackupActivity extends AppCompatActivity {
 
     private void exportSales() {
         setProgress(true, "Mengunduh data transaksi dari server...");
-        
-        apiService.getSales().enqueue(new Callback<JsonObject>() {
+
+        // Request all sales for export
+        Map<String, String> params = new HashMap<>();
+        params.put("per_page", "all");
+
+        apiService.getSalesFiltered(params).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setProgress(false, "");
                 if (response.isSuccessful() && response.body() != null) {
                     try {
-                        JsonArray dataArray = response.body().getAsJsonArray("data");
+                        JsonArray dataArray = extractDataArray(response.body());
                         if (dataArray == null || dataArray.size() == 0) {
                             Toast.makeText(BackupActivity.this, "Tidak ada data transaksi untuk diekspor.", Toast.LENGTH_SHORT).show();
                             return;
@@ -202,13 +208,17 @@ public class BackupActivity extends AppCompatActivity {
     private void exportProducts() {
         setProgress(true, "Mengunduh data katalog produk dari server...");
 
-        apiService.getProducts().enqueue(new Callback<JsonObject>() {
+        // Request all products for export
+        Map<String, String> params = new HashMap<>();
+        params.put("per_page", "all");
+
+        apiService.getProductsFiltered(params).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setProgress(false, "");
                 if (response.isSuccessful() && response.body() != null) {
                     try {
-                        JsonArray dataArray = response.body().getAsJsonArray("data");
+                        JsonArray dataArray = extractDataArray(response.body());
                         if (dataArray == null || dataArray.size() == 0) {
                             Toast.makeText(BackupActivity.this, "Tidak ada data produk untuk diekspor.", Toast.LENGTH_SHORT).show();
                             return;
@@ -245,13 +255,17 @@ public class BackupActivity extends AppCompatActivity {
     private void exportCustomers() {
         setProgress(true, "Mengunduh data pelanggan dari server...");
 
-        apiService.getCustomers().enqueue(new Callback<JsonObject>() {
+        // Request all customers for export
+        Map<String, String> params = new HashMap<>();
+        params.put("per_page", "all");
+
+        apiService.getCustomersFiltered(params).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setProgress(false, "");
                 if (response.isSuccessful() && response.body() != null) {
                     try {
-                        JsonArray dataArray = response.body().getAsJsonArray("data");
+                        JsonArray dataArray = extractDataArray(response.body());
                         if (dataArray == null || dataArray.size() == 0) {
                             Toast.makeText(BackupActivity.this, "Tidak ada data customer untuk diekspor.", Toast.LENGTH_SHORT).show();
                             return;
@@ -283,6 +297,24 @@ public class BackupActivity extends AppCompatActivity {
                 showErrorDialog(getString(R.string.tidak_ada_koneksi));
             }
         });
+    }
+
+    /**
+     * Safely extract the data array from API response.
+     * Handles both flat ({"data": [...]}) and paginated ({"data": {"data": [...], ...}}) structures.
+     */
+    private JsonArray extractDataArray(JsonObject body) {
+        if (body.has("data")) {
+            if (body.get("data").isJsonArray()) {
+                return body.getAsJsonArray("data");
+            } else if (body.get("data").isJsonObject()) {
+                JsonObject paginatedData = body.getAsJsonObject("data");
+                if (paginatedData.has("data") && paginatedData.get("data").isJsonArray()) {
+                    return paginatedData.getAsJsonArray("data");
+                }
+            }
+        }
+        return new JsonArray();
     }
 
     private void saveAndShowResult(String csvContent, String fileName) {

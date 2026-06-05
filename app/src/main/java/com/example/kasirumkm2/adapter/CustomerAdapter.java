@@ -30,10 +30,24 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.ViewHo
     }
 
     public void setData(List<Customer> data) {
-        this.customerList = data;
+        this.customerList = new ArrayList<>(data);
         this.filteredList = new ArrayList<>(data);
         notifyDataSetChanged();
     }
+
+    public void addData(List<Customer> data) {
+        int startPosition = this.filteredList.size();
+        this.customerList.addAll(data);
+        this.filteredList.addAll(data);
+        notifyItemRangeInserted(startPosition, data.size());
+    }
+
+    public void clearData() {
+        this.customerList.clear();
+        this.filteredList.clear();
+        notifyDataSetChanged();
+    }
+
 
     public void filter(String query) {
         filteredList.clear();

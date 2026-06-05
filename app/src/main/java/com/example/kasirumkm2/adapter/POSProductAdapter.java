@@ -38,10 +38,24 @@ public class POSProductAdapter extends RecyclerView.Adapter<POSProductAdapter.Vi
     }
 
     public void setData(List<Product> data) {
-        this.productList = data;
+        this.productList = new ArrayList<>(data);
         this.filteredList = new ArrayList<>(data);
         notifyDataSetChanged();
     }
+
+    public void addData(List<Product> data) {
+        int startPosition = this.filteredList.size();
+        this.productList.addAll(data);
+        this.filteredList.addAll(data);
+        notifyItemRangeInserted(startPosition, data.size());
+    }
+
+    public void clearData() {
+        this.productList.clear();
+        this.filteredList.clear();
+        notifyDataSetChanged();
+    }
+
 
     public void setCartState(List<CartItem> cartList, int customerGroupId) {
         this.cartMap.clear();

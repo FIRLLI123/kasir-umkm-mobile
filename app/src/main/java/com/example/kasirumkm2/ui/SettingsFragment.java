@@ -49,6 +49,7 @@ public class SettingsFragment extends Fragment {
 
         displayProfileSummary();
         updatePrinterStatusDisplay();
+        binding.tvAppVersion.setText("v" + com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(requireContext()));
         setupListeners();
     }
 
@@ -123,7 +124,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void showAppInfo() {
-        String info = "Kasir UMKM Mobile Client\nVersi 1.0.0\n\nDidesain khusus untuk efisiensi transaksi retail & grosir UMKM.\n\nDeveloper: @Firlli.an\n";
+        String version = com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(requireContext());
+        String info = "TANYA KASIR Mobile Client\nVersi " + version + "\n\nDidesain khusus untuk efisiensi transaksi retail & grosir UMKM.\n\nDeveloper: @Firlli.an\n";
         String link = "https://firlli.vercel.app/";
         String full = info + link;
 

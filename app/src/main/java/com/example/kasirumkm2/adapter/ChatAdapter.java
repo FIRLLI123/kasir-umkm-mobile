@@ -242,7 +242,7 @@ public class ChatAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         private ObjectAnimator createBounce(View view, long delay) {
-            ObjectAnimator anim = ObjectAnimator.ofFloat(view, "translationY", 0f, -18f, 0f);
+            ObjectAnimator anim = ObjectAnimator.ofFloat(view, "translationY", 0f, -10f, 0f);
             anim.setDuration(600);
             anim.setStartDelay(delay);
             anim.setRepeatCount(ObjectAnimator.INFINITE);

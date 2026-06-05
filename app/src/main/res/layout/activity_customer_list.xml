@@ -119,6 +119,17 @@
             android:indeterminateTint="@color/primary"
             android:visibility="gone" />
 
+        <!-- Load More ProgressBar -->
+        <ProgressBar
+            android:id="@+id/progressBarLoadMore"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:indeterminateTint="@color/primary"
+            android:visibility="gone" />
+
+
         <!-- FAB Add -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fabAdd"

@@ -41,6 +41,18 @@ public class StockAdapter extends RecyclerView.Adapter<StockAdapter.StockViewHol
         notifyDataSetChanged();
     }
 
+    public void addData(List<JsonObject> data) {
+        int startPosition = this.stockList.size();
+        this.stockList.addAll(data);
+        notifyItemRangeInserted(startPosition, data.size());
+    }
+
+    public void clearData() {
+        this.stockList.clear();
+        notifyDataSetChanged();
+    }
+
+
     @NonNull
     @Override
     public StockViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

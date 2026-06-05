@@ -21,7 +21,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -34,6 +36,14 @@ public class ProductListActivity extends AppCompatActivity {
     private ProductAdapter adapter;
     private final Gson gson = new Gson();
     private int userGroupId = 1;
+
+    // Pagination states
+    private int currentPage = 1;
+    private int lastPage = 1;
+    private boolean isLoading = false;
+    private String searchQuery = "";
+    private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +74,28 @@ public class ProductListActivity extends AppCompatActivity {
         });
         binding.rvProducts.setLayoutManager(new LinearLayoutManager(this));
         binding.rvProducts.setAdapter(adapter);
+
+        binding.rvProducts.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if (!isLoading && currentPage < lastPage) {
+                        if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 3
+                                && firstVisibleItemPosition >= 0) {
+                            currentPage++;
+                            loadProducts(false);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void setupSearch() {
@@ -73,7 +105,15 @@ public class ProductListActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filter(s.toString());
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                searchRunnable = () -> {
+                    searchQuery = s.toString().trim();
+                    currentPage = 1;
+                    loadProducts(true);
+                };
+                searchHandler.postDelayed(searchRunnable, 400); // 400ms debounce
             }
 
             @Override
@@ -90,7 +130,10 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void setupSwipeRefresh() {
         binding.swipeRefresh.setColorSchemeColors(getColor(R.color.primary));
-        binding.swipeRefresh.setOnRefreshListener(this::loadCustomerGroupsAndProducts);
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            currentPage = 1;
+            loadCustomerGroupsAndProducts();
+        });
     }
 
     private void loadCustomerGroupsAndProducts() {
@@ -115,41 +158,85 @@ public class ProductListActivity extends AppCompatActivity {
                         // ignore
                     }
                 }
-                loadProducts();
+                currentPage = 1;
+                loadProducts(true);
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                loadProducts();
+                currentPage = 1;
+                loadProducts(true);
             }
         });
     }
 
-    private void loadProducts() {
-        binding.progressBar.setVisibility(View.VISIBLE);
+    private void loadProducts(boolean isRefreshOrSearch) {
+        if (isLoading) return;
+        isLoading = true;
 
-        apiService.getProducts().enqueue(new Callback<JsonObject>() {
+        if (isRefreshOrSearch) {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            binding.progressBarLoadMore.setVisibility(View.GONE);
+        } else {
+            binding.progressBarLoadMore.setVisibility(View.VISIBLE);
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put("page", String.valueOf(currentPage));
+        params.put("per_page", "15");
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            params.put("search", searchQuery);
+        }
+
+        apiService.getProductsFiltered(params).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                isLoading = false;
                 binding.progressBar.setVisibility(View.GONE);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
 
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         JsonObject body = response.body();
-                        JsonArray dataArray = body.getAsJsonArray("data");
 
+                        // Try to parse pagination meta info from the response root
+                        if (body.has("meta") && !body.get("meta").isJsonNull()) {
+                            JsonObject meta = body.getAsJsonObject("meta");
+                            if (meta.has("current_page")) {
+                                currentPage = meta.get("current_page").getAsInt();
+                            }
+                            if (meta.has("last_page")) {
+                                lastPage = meta.get("last_page").getAsInt();
+                            }
+                        } else if (body.has("data") && body.get("data").isJsonObject()) {
+                            // In case Laravel's standard wrapper wraps meta inside data
+                            JsonObject dataObj = body.getAsJsonObject("data");
+                            if (dataObj.has("current_page")) {
+                                currentPage = dataObj.get("current_page").getAsInt();
+                            }
+                            if (dataObj.has("last_page")) {
+                                lastPage = dataObj.get("last_page").getAsInt();
+                            }
+                        }
+
+                        JsonArray dataArray = extractDataArray(body);
                         List<Product> products = new ArrayList<>();
                         for (int i = 0; i < dataArray.size(); i++) {
                             Product p = gson.fromJson(dataArray.get(i), Product.class);
                             products.add(p);
                         }
 
-                        adapter.setData(products);
-                        toggleEmptyState(products.isEmpty());
+                        if (isRefreshOrSearch) {
+                            adapter.setData(products);
+                        } else {
+                            adapter.addData(products);
+                        }
+
+                        toggleEmptyState(adapter.getItemCount() == 0);
                     } catch (Exception e) {
                         CurrencyHelper.showError(binding.getRoot(), "Gagal memuat data produk");
-                        toggleEmptyState(true);
+                        toggleEmptyState(adapter.getItemCount() == 0);
                     }
                 } else if (response.code() == 401) {
                     handleUnauthorized();
@@ -160,11 +247,34 @@ public class ProductListActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
+                isLoading = false;
                 binding.progressBar.setVisibility(View.GONE);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
                 CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
             }
         });
+    }
+
+
+    /**
+     * Safely extract the data array from API response.
+     * Handles both flat ({"data": [...]}) and paginated ({"data": {"data": [...], ...}}) structures.
+     */
+    private JsonArray extractDataArray(JsonObject body) {
+        if (body.has("data")) {
+            if (body.get("data").isJsonArray()) {
+                // Flat: {"data": [...]}
+                return body.getAsJsonArray("data");
+            } else if (body.get("data").isJsonObject()) {
+                // Paginated: {"data": {"data": [...], "current_page": 1, ...}}
+                JsonObject paginatedData = body.getAsJsonObject("data");
+                if (paginatedData.has("data") && paginatedData.get("data").isJsonArray()) {
+                    return paginatedData.getAsJsonArray("data");
+                }
+            }
+        }
+        return new JsonArray();
     }
 
     private void toggleEmptyState(boolean empty) {

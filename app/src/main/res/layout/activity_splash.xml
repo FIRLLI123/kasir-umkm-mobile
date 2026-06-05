@@ -86,11 +86,11 @@
                 app:strokeWidth="0dp"
                 app:cardBackgroundColor="@color/white">
 
-                <TextView
+                <ImageView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="🛒"
+                    android:src="@drawable/airin"
                     android:textSize="38sp" />
 
             </com.google.android.material.card.MaterialCardView>
@@ -102,7 +102,7 @@
             android:id="@+id/tvAppName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Kita Kasir"
+            android:text="Tanya Kasir"
             android:textColor="@color/white"
             android:textSize="34sp"
             android:textStyle="bold"
@@ -269,6 +269,7 @@
             android:layout_marginBottom="20dp" />
 
         <TextView
+            android:id="@+id/tvVersion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="v1.0.0"

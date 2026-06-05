@@ -7,13 +7,15 @@
     android:paddingStart="16dp"
     android:paddingEnd="64dp"
     android:paddingTop="4dp"
-    android:paddingBottom="4dp">
+    android:paddingBottom="4dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <!-- AI Avatar -->
     <LinearLayout
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:background="@drawable/airin"
+        android:background="@drawable/airin_no_bg"
         android:gravity="center"
         android:layout_marginEnd="8dp"
         android:layout_marginTop="4dp">
@@ -33,7 +35,9 @@
         android:background="@drawable/bg_bubble_ai"
         android:padding="16dp"
         android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <View
             android:id="@+id/dot1"

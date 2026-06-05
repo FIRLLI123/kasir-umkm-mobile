@@ -262,4 +262,50 @@
         app:backgroundTint="@color/primary"
         android:insetBottom="0dp"
         android:insetTop="0dp" />
+
+    <!-- Void Info Section (shown only for voided transactions) -->
+    <LinearLayout
+        android:id="@+id/layoutVoidInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/danger_red_light"
+        android:padding="12dp"
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️ Transaksi ini telah di-VOID"
+            android:textColor="@color/danger_red"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvVoidReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Alasan: -"
+            android:textColor="@color/danger_red"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Void Transaksi Button (hidden by default, only for status 00) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSheetVoid"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="⚠️ Void Transaksi"
+        android:textColor="@color/white"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:cornerRadius="10dp"
+        app:backgroundTint="@color/danger_red"
+        android:insetBottom="0dp"
+        android:insetTop="0dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
+
 </LinearLayout>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kasir UMKM</string>
+    <string name="app_name">TANYA KASIR</string>
 
     <!-- Login -->
     <string name="login_tagline">Kelola bisnis Anda dengan mudah</string>
@@ -141,6 +141,20 @@
     <string name="konfirmasi_hapus">Apakah Anda yakin ingin menghapus data ini?</string>
     <string name="konfirmasi_void">Apakah Anda yakin ingin membatalkan transaksi ini?</string>
     <string name="alasan_void">Alasan Pembatalan</string>
+
+    <!-- Void Transaction -->
+    <string name="void_transaksi">Void Transaksi</string>
+    <string name="void_warning_title">⚠️ Peringatan Void</string>
+    <string name="void_warning_message">Anda akan membatalkan transaksi ini.\n\n• Stok produk akan dikembalikan\n• Data transaksi akan berubah status\n• Aksi ini TIDAK BISA dibatalkan\n\nApakah Anda yakin ingin melanjutkan?</string>
+    <string name="void_reason_title">Alasan Void</string>
+    <string name="void_reason_hint">Tulis alasan pembatalan (min. 10 karakter)</string>
+    <string name="void_confirm_title">Konfirmasi Akhir</string>
+    <string name="void_success">Transaksi berhasil di-void</string>
+    <string name="void_failed">Gagal void transaksi</string>
+    <string name="void_password_hint">Masukkan password Anda</string>
+    <string name="void_password_invalid">Password salah. Silakan coba lagi.</string>
+    <string name="void_reason_too_short">Alasan void minimal 10 karakter</string>
+
     <string name="rp_prefix">Rp</string>
 
     <!-- Receipt -->
@@ -149,7 +163,7 @@
     <string name="struk_footer_default">Terima kasih atas kunjungan\nAnda! Sampai jumpa.</string>
 
     <!-- Content Descriptions -->
-    <string name="cd_logo">Logo Kasir UMKM</string>
+    <string name="cd_logo">Logo TANYA KASIR</string>
     <string name="cd_toggle_password">Tampilkan/sembunyikan password</string>
     <string name="cd_avatar">Avatar pengguna</string>
     <string name="cd_close">Tutup</string>

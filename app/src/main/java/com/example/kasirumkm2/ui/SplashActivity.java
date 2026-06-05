@@ -31,6 +31,8 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         sessionManager = new SessionManager(this);
+        
+        binding.tvVersion.setText("v" + com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(this));
 
         setupInitialState();
         runAnimations();

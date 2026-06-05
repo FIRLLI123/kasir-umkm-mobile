@@ -136,4 +136,25 @@ public class CurrencyHelper {
     public static void showToast(Context context, String message) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
     }
+
+    /**
+     * Get dynamic app version name from PackageInfo
+     */
+    public static String getAppVersion(Context context) {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                return context.getPackageManager().getPackageInfo(
+                        context.getPackageName(),
+                        android.content.pm.PackageManager.PackageInfoFlags.of(0)
+                ).versionName;
+            } else {
+                return context.getPackageManager().getPackageInfo(
+                        context.getPackageName(),
+                        0
+                ).versionName;
+            }
+        } catch (android.content.pm.PackageManager.NameNotFoundException e) {
+            return "1.0.0";
+        }
+    }
 }

@@ -36,6 +36,8 @@ public class LoginActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager(this);
         apiService = ApiClient.getApiService(this);
+        
+        binding.tvVersion.setText("v" + com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(this));
 
         // Check if already logged in
         if (sessionManager.isLoggedIn()) {

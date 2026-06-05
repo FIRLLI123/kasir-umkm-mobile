@@ -37,6 +37,9 @@ public interface ApiService {
     @GET("customers")
     Call<JsonObject> getCustomers();
 
+    @GET("customers")
+    Call<JsonObject> getCustomersFiltered(@QueryMap Map<String, String> params);
+
     @GET("customers/{id}")
     Call<JsonObject> getCustomerDetail(@Path("id") int id);
 
@@ -53,6 +56,9 @@ public interface ApiService {
 
     @GET("products")
     Call<JsonObject> getProducts();
+
+    @GET("products")
+    Call<JsonObject> getProductsFiltered(@QueryMap Map<String, String> params);
 
     @GET("products/{id}")
     Call<JsonObject> getProductDetail(@Path("id") int id);

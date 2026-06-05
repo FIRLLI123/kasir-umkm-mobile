@@ -21,7 +21,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,6 +35,14 @@ public class CustomerListActivity extends AppCompatActivity {
     private ApiService apiService;
     private CustomerAdapter adapter;
     private final Gson gson = new Gson();
+
+    // Pagination states
+    private int currentPage = 1;
+    private int lastPage = 1;
+    private boolean isLoading = false;
+    private String searchQuery = "";
+    private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable searchRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +58,7 @@ public class CustomerListActivity extends AppCompatActivity {
         setupFab();
         setupSwipeRefresh();
 
-        loadCustomers();
+        loadCustomers(true);
     }
 
     private void setupToolbar() {
@@ -73,6 +83,28 @@ public class CustomerListActivity extends AppCompatActivity {
         });
         binding.rvCustomers.setLayoutManager(new LinearLayoutManager(this));
         binding.rvCustomers.setAdapter(adapter);
+
+        binding.rvCustomers.addOnScrollListener(new androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(androidx.recyclerview.widget.RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null) {
+                    int visibleItemCount = layoutManager.getChildCount();
+                    int totalItemCount = layoutManager.getItemCount();
+                    int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                    if (!isLoading && currentPage < lastPage) {
+                        if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 3
+                                && firstVisibleItemPosition >= 0) {
+                            currentPage++;
+                            loadCustomers(false);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private void setupSearch() {
@@ -82,7 +114,15 @@ public class CustomerListActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filter(s.toString());
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                searchRunnable = () -> {
+                    searchQuery = s.toString().trim();
+                    currentPage = 1;
+                    loadCustomers(true);
+                };
+                searchHandler.postDelayed(searchRunnable, 400); // 400ms debounce
             }
 
             @Override
@@ -99,34 +139,78 @@ public class CustomerListActivity extends AppCompatActivity {
 
     private void setupSwipeRefresh() {
         binding.swipeRefresh.setColorSchemeColors(getColor(R.color.primary));
-        binding.swipeRefresh.setOnRefreshListener(this::loadCustomers);
+        binding.swipeRefresh.setOnRefreshListener(() -> {
+            currentPage = 1;
+            loadCustomers(true);
+        });
     }
 
-    private void loadCustomers() {
-        binding.progressBar.setVisibility(View.VISIBLE);
+    private void loadCustomers(boolean isRefreshOrSearch) {
+        if (isLoading) return;
+        isLoading = true;
 
-        apiService.getCustomers().enqueue(new Callback<JsonObject>() {
+        if (isRefreshOrSearch) {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            binding.progressBarLoadMore.setVisibility(View.GONE);
+        } else {
+            binding.progressBarLoadMore.setVisibility(View.VISIBLE);
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put("page", String.valueOf(currentPage));
+        params.put("per_page", "15");
+        if (searchQuery != null && !searchQuery.isEmpty()) {
+            params.put("search", searchQuery);
+        }
+
+        apiService.getCustomersFiltered(params).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                isLoading = false;
                 binding.progressBar.setVisibility(View.GONE);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
 
                 if (response.isSuccessful() && response.body() != null) {
                     try {
                         JsonObject body = response.body();
-                        JsonArray dataArray = body.getAsJsonArray("data");
 
+                        // Try to parse pagination meta info from the response root
+                        if (body.has("meta") && !body.get("meta").isJsonNull()) {
+                            JsonObject meta = body.getAsJsonObject("meta");
+                            if (meta.has("current_page")) {
+                                currentPage = meta.get("current_page").getAsInt();
+                            }
+                            if (meta.has("last_page")) {
+                                lastPage = meta.get("last_page").getAsInt();
+                            }
+                        } else if (body.has("data") && body.get("data").isJsonObject()) {
+                            JsonObject dataObj = body.getAsJsonObject("data");
+                            if (dataObj.has("current_page")) {
+                                currentPage = dataObj.get("current_page").getAsInt();
+                            }
+                            if (dataObj.has("last_page")) {
+                                lastPage = dataObj.get("last_page").getAsInt();
+                            }
+                        }
+
+                        JsonArray dataArray = extractDataArray(body);
                         List<Customer> customers = new ArrayList<>();
                         for (int i = 0; i < dataArray.size(); i++) {
                             Customer c = gson.fromJson(dataArray.get(i), Customer.class);
                             customers.add(c);
                         }
 
-                        adapter.setData(customers);
-                        toggleEmptyState(customers.isEmpty());
+                        if (isRefreshOrSearch) {
+                            adapter.setData(customers);
+                        } else {
+                            adapter.addData(customers);
+                        }
+
+                        toggleEmptyState(adapter.getItemCount() == 0);
                     } catch (Exception e) {
-                        CurrencyHelper.showError(binding.getRoot(), "Gagal memuat data");
-                        toggleEmptyState(true);
+                        CurrencyHelper.showError(binding.getRoot(), "Gagal memuat data customer");
+                        toggleEmptyState(adapter.getItemCount() == 0);
                     }
                 } else if (response.code() == 401) {
                     handleUnauthorized();
@@ -137,11 +221,31 @@ public class CustomerListActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
+                isLoading = false;
                 binding.progressBar.setVisibility(View.GONE);
+                binding.progressBarLoadMore.setVisibility(View.GONE);
                 binding.swipeRefresh.setRefreshing(false);
                 CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
             }
         });
+    }
+
+    /**
+     * Safely extract the data array from API response.
+     * Handles both flat ({"data": [...]}) and paginated ({"data": {"data": [...], ...}}) structures.
+     */
+    private JsonArray extractDataArray(JsonObject body) {
+        if (body.has("data")) {
+            if (body.get("data").isJsonArray()) {
+                return body.getAsJsonArray("data");
+            } else if (body.get("data").isJsonObject()) {
+                JsonObject paginatedData = body.getAsJsonObject("data");
+                if (paginatedData.has("data") && paginatedData.get("data").isJsonArray()) {
+                    return paginatedData.getAsJsonArray("data");
+                }
+            }
+        }
+        return new JsonArray();
     }
 
     private void toggleEmptyState(boolean empty) {
@@ -161,6 +265,7 @@ public class CustomerListActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadCustomers();
+        currentPage = 1;
+        loadCustomers(true);
     }
 }

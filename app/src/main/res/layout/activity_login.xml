@@ -29,12 +29,12 @@
             app:cardBackgroundColor="@color/primary"
             android:layout_marginBottom="@dimen/spacing_lg">
 
-            <TextView
+            <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="🏪"
-                android:textSize="36sp" />
+                android:src="@drawable/airin"
+                android:textSize="38sp" />
         </androidx.cardview.widget.CardView>
 
         <!-- App Name -->
@@ -124,6 +124,17 @@
             android:textColor="@color/text_light"
             android:textSize="@dimen/text_caption"
             android:drawablePadding="@dimen/spacing_xs"
+            android:gravity="center" />
+
+        <!-- Version Name -->
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="v1.0.0"
+            android:textColor="@color/text_light"
+            android:textSize="@dimen/text_caption"
+            android:layout_marginTop="@dimen/spacing_lg"
             android:gravity="center" />
 
         <!-- Spacer Bottom -->
