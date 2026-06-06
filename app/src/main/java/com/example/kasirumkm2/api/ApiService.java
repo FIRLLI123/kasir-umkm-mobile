@@ -1,6 +1,7 @@
 package com.example.kasirumkm2.api;
 
 import com.example.kasirumkm2.data.LoginRequest;
+import com.example.kasirumkm2.data.RegisterRequest;
 import com.google.gson.JsonObject;
 
 import java.util.Map;
@@ -26,6 +27,23 @@ public interface ApiService {
 
     @POST("logout")
     Call<JsonObject> logout();
+
+    // ======================== SUBSCRIPTION & ONBOARDING ========================
+
+    @POST("register")
+    Call<JsonObject> register(@Body RegisterRequest registerRequest);
+
+    @GET("subscription/active")
+    Call<JsonObject> getSubscriptionActive();
+
+    @GET("subscription/plans")
+    Call<JsonObject> getSubscriptionPlans();
+
+    @POST("subscription/checkout")
+    Call<JsonObject> subscriptionCheckout(@Body JsonObject body);
+
+    @GET("subscription/transactions/{id}/status")
+    Call<JsonObject> getPaymentStatus(@Path("id") String id);
 
     // ======================== CUSTOMER GROUP ========================
 

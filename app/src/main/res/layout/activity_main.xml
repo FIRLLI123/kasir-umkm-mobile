@@ -7,6 +7,48 @@
     android:orientation="vertical"
     android:background="@color/background_page">
 
+    <!-- Expiry Alert Banner -->
+    <LinearLayout
+        android:id="@+id/layoutExpiryBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#FFE5E5"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_dialog_alert"
+            app:tint="#D32F2F" />
+
+        <TextView
+            android:id="@+id/tvExpiryBannerText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:text="@string/subscription_expired_desc"
+            android:textColor="#D32F2F"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/btnUpgradeBanner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UPGRADE"
+            android:textColor="#D32F2F"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:padding="6dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
     <!-- Fragment Container -->
     <FrameLayout
         android:id="@+id/fragmentContainer"

@@ -17,6 +17,7 @@ import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.data.CartItem;
 import com.example.kasirumkm2.data.Product;
 import com.example.kasirumkm2.databinding.ActivityPosBinding;
+import com.example.kasirumkm2.session.SessionManager;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -66,6 +67,15 @@ public class POSActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityPosBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        SessionManager sessionManager = new SessionManager(this);
+        if (sessionManager.isSubscriptionExpired()) {
+            android.widget.Toast.makeText(this, "Masa aktif langganan Anda telah habis. Akses dibatasi.", android.widget.Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(this, SubscriptionActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         apiService = ApiClient.getApiService(this);
 

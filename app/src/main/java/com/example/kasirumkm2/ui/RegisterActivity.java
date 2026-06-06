@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.animation.AnimationUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -12,8 +11,8 @@ import com.example.kasirumkm2.MainActivity;
 import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
-import com.example.kasirumkm2.data.LoginRequest;
-import com.example.kasirumkm2.databinding.ActivityLoginBinding;
+import com.example.kasirumkm2.data.RegisterRequest;
+import com.example.kasirumkm2.databinding.ActivityRegisterBinding;
 import com.example.kasirumkm2.session.SessionManager;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonObject;
@@ -22,67 +21,87 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
 
-    private ActivityLoginBinding binding;
+    private ActivityRegisterBinding binding;
     private SessionManager sessionManager;
     private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         sessionManager = new SessionManager(this);
         apiService = ApiClient.getApiService(this);
-        
-        binding.tvVersion.setText("v" + com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(this));
-
-        // Check if already logged in
-        if (sessionManager.isLoggedIn()) {
-            navigateToMain();
-            return;
-        }
-
-        // Prefill saved credentials
-        String savedEmail = sessionManager.getSavedEmail();
-        String savedPassword = sessionManager.getSavedPassword();
-        if (!savedEmail.isEmpty()) {
-            binding.etEmail.setText(savedEmail);
-        }
-        if (!savedPassword.isEmpty()) {
-            binding.etPassword.setText(savedPassword);
-        }
 
         setupListeners();
     }
 
     private void setupListeners() {
-        binding.btnLogin.setOnClickListener(v -> attemptLogin());
-        binding.tvRegisterLink.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-            startActivity(intent);
-        });
+        binding.btnRegister.setOnClickListener(v -> attemptRegister());
+        binding.tvLoginLink.setOnClickListener(v -> finish());
 
         // Clear errors on focus
+        binding.etCompanyName.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilCompanyName.setError(null);
+        });
+        binding.etName.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilName.setError(null);
+        });
         binding.etEmail.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) binding.tilEmail.setError(null);
+        });
+        binding.etPhone.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilPhone.setError(null);
+        });
+        binding.etAddress.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilAddress.setError(null);
         });
         binding.etPassword.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) binding.tilPassword.setError(null);
         });
+        binding.etPasswordConfirmation.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilPasswordConfirmation.setError(null);
+        });
     }
 
-    private void attemptLogin() {
+    private void attemptRegister() {
+        String companyName = binding.etCompanyName.getText().toString().trim();
+        String name = binding.etName.getText().toString().trim();
         String email = binding.etEmail.getText().toString().trim();
+        String phone = binding.etPhone.getText().toString().trim();
+        String address = binding.etAddress.getText().toString().trim();
         String password = binding.etPassword.getText().toString().trim();
+        String passwordConf = binding.etPasswordConfirmation.getText().toString().trim();
 
-        // Validate
+        // Validation
         boolean valid = true;
+
+        if (TextUtils.isEmpty(companyName)) {
+            binding.tilCompanyName.setError(getString(R.string.register_error_company_name));
+            shakeView(binding.tilCompanyName);
+            valid = false;
+        }
+        if (TextUtils.isEmpty(name)) {
+            binding.tilName.setError(getString(R.string.register_error_name));
+            shakeView(binding.tilName);
+            valid = false;
+        }
         if (TextUtils.isEmpty(email)) {
             binding.tilEmail.setError(getString(R.string.login_error_email));
             shakeView(binding.tilEmail);
+            valid = false;
+        }
+        if (TextUtils.isEmpty(phone)) {
+            binding.tilPhone.setError(getString(R.string.register_error_phone));
+            shakeView(binding.tilPhone);
+            valid = false;
+        }
+        if (TextUtils.isEmpty(address)) {
+            binding.tilAddress.setError(getString(R.string.register_error_address));
+            shakeView(binding.tilAddress);
             valid = false;
         }
         if (TextUtils.isEmpty(password)) {
@@ -90,21 +109,34 @@ public class LoginActivity extends AppCompatActivity {
             shakeView(binding.tilPassword);
             valid = false;
         }
+        if (TextUtils.isEmpty(passwordConf)) {
+            binding.tilPasswordConfirmation.setError(getString(R.string.register_error_password_conf));
+            shakeView(binding.tilPasswordConfirmation);
+            valid = false;
+        }
+        if (valid && !password.equals(passwordConf)) {
+            binding.tilPasswordConfirmation.setError(getString(R.string.register_error_password_match));
+            shakeView(binding.tilPasswordConfirmation);
+            valid = false;
+        }
+
         if (!valid) return;
 
-        // Show loading
         setLoading(true);
 
-        // Build request
-        LoginRequest loginRequest = new LoginRequest(
+        RegisterRequest registerRequest = new RegisterRequest(
+                companyName,
+                name,
                 email,
                 password,
+                passwordConf,
+                phone,
+                address,
                 sessionManager.getDeviceId(),
                 sessionManager.getDeviceName()
         );
 
-        // Call API
-        apiService.login(loginRequest).enqueue(new Callback<JsonObject>() {
+        apiService.register(registerRequest).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setLoading(false);
@@ -123,8 +155,8 @@ public class LoginActivity extends AppCompatActivity {
 
                         // Save session
                         sessionManager.saveSession(token, userId, name, userEmail, role);
-                        
-                        // Save company details if available in response
+
+                        // Save company details
                         if (data.has("company") && !data.get("company").isJsonNull()) {
                             JsonObject comp = data.getAsJsonObject("company");
                             int compId = comp.get("id").getAsInt();
@@ -133,34 +165,35 @@ public class LoginActivity extends AppCompatActivity {
                             sessionManager.saveCompany(compId, compName, compCode);
                         }
 
-                        // Save subscription details if available in response
+                        // Save subscription details
                         if (data.has("subscription") && !data.get("subscription").isJsonNull()) {
                             JsonObject sub = data.getAsJsonObject("subscription");
-                            String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "expired";
+                            String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "trial";
                             boolean subActive = sub.has("is_active") && !sub.get("is_active").isJsonNull() && sub.get("is_active").getAsBoolean();
                             boolean subLifetime = sub.has("is_lifetime") && !sub.get("is_lifetime").isJsonNull() && sub.get("is_lifetime").getAsBoolean();
                             String trialEndsAt = sub.has("trial_ends_at") && !sub.get("trial_ends_at").isJsonNull() ? sub.get("trial_ends_at").getAsString() : "";
                             String endsAt = sub.has("ends_at") && !sub.get("ends_at").isJsonNull() ? sub.get("ends_at").getAsString() : "";
                             sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
                         }
-                        
+
                         // Save AI chat limit details if available in response
                         sessionManager.updateAiChatLimit(body);
-                        
-                        // Save credentials for prefilling next time
+
+                        // Save credentials for prefilling next login
                         sessionManager.saveSavedCredentials(email, password);
 
-                        // Reset API client to use new token
+                        // Reset API client to use new Bearer token
                         ApiClient.resetClient();
 
-                        // Navigate
+                        CurrencyHelper.showSuccess(binding.getRoot(), getString(R.string.register_success));
+
+                        // Navigate to Main Activity
                         navigateToMain();
                     } catch (Exception e) {
-                        CurrencyHelper.showError(binding.getRoot(), "Login gagal: " + e.getMessage());
+                        CurrencyHelper.showError(binding.getRoot(), "Registrasi gagal: " + e.getMessage());
                     }
                 } else {
-                    // Handle error
-                    String errorMsg = "Login gagal";
+                    String errorMsg = getString(R.string.register_failed);
                     try {
                         if (response.errorBody() != null) {
                             String errorBody = response.errorBody().string();
@@ -180,22 +213,25 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(),
-                        getString(R.string.tidak_ada_koneksi));
+                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
             }
         });
     }
 
     private void setLoading(boolean loading) {
         binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-        binding.btnLogin.setEnabled(!loading);
-        binding.btnLogin.setText(loading ? "" : getString(R.string.btn_login));
+        binding.btnRegister.setEnabled(!loading);
+        binding.btnRegister.setText(loading ? "" : getString(R.string.btn_register));
+        binding.etCompanyName.setEnabled(!loading);
+        binding.etName.setEnabled(!loading);
         binding.etEmail.setEnabled(!loading);
+        binding.etPhone.setEnabled(!loading);
+        binding.etAddress.setEnabled(!loading);
         binding.etPassword.setEnabled(!loading);
+        binding.etPasswordConfirmation.setEnabled(!loading);
     }
 
     private void shakeView(View view) {
-        // Simple shake animation
         view.animate()
                 .translationX(8f).setDuration(80)
                 .withEndAction(() -> view.animate()

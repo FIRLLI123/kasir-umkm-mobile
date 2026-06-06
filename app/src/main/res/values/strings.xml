@@ -190,4 +190,46 @@
     <string name="export_success">Data berhasil diekspor!</string>
     <string name="export_failed">Ekspor data gagal</string>
     <string name="export_unauthorized">Sesi berakhir, silakan login ulang</string>
+
+    <!-- Register & Subscription -->
+    <string name="lbl_no_account">Belum punya akun?</string>
+    <string name="btn_register_now">Daftar</string>
+    <string name="register_title">Daftar Akun Baru</string>
+    <string name="register_tagline">Buat akun Kasir UMKM dalam 1 menit</string>
+    <string name="hint_company_name">Nama Usaha / Toko</string>
+    <string name="hint_name">Nama Pemilik</string>
+    <string name="hint_phone">Nomor WhatsApp</string>
+    <string name="hint_address">Alamat Toko</string>
+    <string name="hint_password_confirmation">Konfirmasi Password</string>
+    <string name="btn_register">DAFTAR SEKARANG</string>
+    <string name="lbl_already_have_account">Sudah punya akun?</string>
+    <string name="btn_login_now">Masuk</string>
+    <string name="register_error_company_name">Nama usaha tidak boleh kosong</string>
+    <string name="register_error_name">Nama pemilik tidak boleh kosong</string>
+    <string name="register_error_phone">Nomor WhatsApp tidak boleh kosong</string>
+    <string name="register_error_address">Alamat tidak boleh kosong</string>
+    <string name="register_error_password_conf">Konfirmasi password tidak boleh kosong</string>
+    <string name="register_error_password_match">Password konfirmasi tidak cocok</string>
+    <string name="register_success">Registrasi berhasil! Memulai sesi trial...</string>
+    <string name="register_failed">Registrasi gagal. Silakan coba lagi.</string>
+
+    <string name="subscription_title">Paket Langganan</string>
+    <string name="subscription_subtitle">Tingkatkan fitur kasir Anda dengan paket premium</string>
+    <string name="subscription_status_trial">Masa Trial</string>
+    <string name="subscription_status_active">Langganan Aktif</string>
+    <string name="subscription_status_expired">Langganan Expired</string>
+    <string name="subscription_status_lifetime">Aktif Selamanya (Lifetime)</string>
+    <string name="btn_checkout">Pilih Paket Ini</string>
+    <string name="btn_check_payment_status">CEK STATUS PEMBAYARAN</string>
+    <string name="payment_title">Pembayaran QRIS</string>
+    <string name="payment_subtitle">Scan QRIS di bawah ini untuk mengaktifkan paket</string>
+    <string name="payment_expired">Masa berlaku pembayaran habis</string>
+    <string name="payment_success">Pembayaran Berhasil! Paket Anda aktif.</string>
+    <string name="payment_processing">Memproses status pembayaran...</string>
+    <string name="payment_time_left">Sisa Waktu Pembayaran</string>
+    <string name="trial_days_remaining">Sisa trial: %1$d hari</string>
+    <string name="subscription_days_remaining">Aktif hingga %1$s</string>
+    <string name="subscription_expired_desc">Aplikasi dalam mode Read-Only. Silakan berlangganan untuk melanjutkan penjualan.</string>
+    <string name="subscription_menu">Langganan &amp; Pembayaran</string>
+    <string name="subscription_menu_subtitle">Status paket: %1$s</string>
 </resources>

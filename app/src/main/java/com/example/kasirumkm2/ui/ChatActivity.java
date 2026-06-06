@@ -23,6 +23,7 @@ import com.example.kasirumkm2.adapter.ChatAdapter;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.data.ChatMessage;
+import com.example.kasirumkm2.session.SessionManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -43,6 +44,11 @@ public class ChatActivity extends AppCompatActivity {
 
     private ChatAdapter chatAdapter;
     private ApiService apiService;
+    private SessionManager sessionManager;
+
+    private View layoutLimitBanner;
+    private TextView tvLimitMessage;
+    private View btnUpgradeNow;
 
     // History max 20 pertukaran (40 message entries)
     private static final int MAX_HISTORY = 20;
@@ -60,6 +66,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        sessionManager = new SessionManager(this);
         apiService = ApiClient.getApiService(this);
 
         bindViews();
@@ -68,6 +75,16 @@ public class ChatActivity extends AppCompatActivity {
         setupInput();
         setupToolbarButtons();
         setupDevLinksBehavior();
+
+        checkAndApplyChatLimit();
+        refreshChatLimit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkAndApplyChatLimit();
+        refreshChatLimit();
     }
 
     private void bindViews() {
@@ -76,6 +93,17 @@ public class ChatActivity extends AppCompatActivity {
         fabSend         = findViewById(R.id.fabSend);
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         tvStatusBar     = findViewById(R.id.tvStatusBar);
+
+        layoutLimitBanner = findViewById(R.id.layoutLimitBanner);
+        tvLimitMessage   = findViewById(R.id.tvLimitMessage);
+        btnUpgradeNow     = findViewById(R.id.btnUpgradeNow);
+
+        if (btnUpgradeNow != null) {
+            btnUpgradeNow.setOnClickListener(v -> {
+                Intent intent = new Intent(ChatActivity.this, SubscriptionActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void setupRecyclerView() {
@@ -205,6 +233,14 @@ public class ChatActivity extends AppCompatActivity {
     // ===== CORE: Send Message =====
 
     private void sendMessage(String userText) {
+        // Double check chat limit locally before sending
+        String subStatus = sessionManager.getAiSubStatus();
+        int remaining = sessionManager.getAiRemainingToday();
+        if ("trial".equalsIgnoreCase(subStatus) && remaining <= 0) {
+            checkAndApplyChatLimit();
+            return;
+        }
+
         // Dismiss keyboard
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (imm != null && getCurrentFocus() != null) {
@@ -242,12 +278,14 @@ public class ChatActivity extends AppCompatActivity {
                         boolean success = respBody.has("success") && respBody.get("success").getAsBoolean();
 
                         if (success) {
+                            sessionManager.updateAiChatLimit(respBody);
+                            checkAndApplyChatLimit();
+
                             JsonObject data = respBody.getAsJsonObject("data");
                             String reply = data.get("reply").getAsString();
 
                             ChatMessage aiMsg = new ChatMessage(reply, ChatMessage.Type.AI);
                             chatAdapter.addMessage(aiMsg);
-                            updateStatusBar("Online");
 
                             // Jika pertanyaan tentang developer, tambah tombol link di bawah balasan
                             if (pendingShowDevLinks) {
@@ -270,6 +308,30 @@ public class ChatActivity extends AppCompatActivity {
                         errMsg = "Sesi login habis. Silakan login ulang.";
                     } else if (response.code() == 422) {
                         errMsg = "Pesan tidak valid. Pastikan pesan tidak kosong.";
+                    } else if (response.code() == 429) {
+                        try {
+                            if (response.errorBody() != null) {
+                                String errorBody = response.errorBody().string();
+                                JsonObject errorJson = new com.google.gson.JsonParser()
+                                        .parse(errorBody).getAsJsonObject();
+
+                                sessionManager.updateAiChatLimit(errorJson);
+                                checkAndApplyChatLimit();
+
+                                if (errorJson.has("message")) {
+                                    errMsg = errorJson.get("message").getAsString();
+                                } else if (errorJson.has("data")) {
+                                    JsonObject errData = errorJson.getAsJsonObject("data");
+                                    if (errData.has("upgrade_message")) {
+                                        errMsg = errData.get("upgrade_message").getAsString();
+                                    }
+                                }
+                            } else {
+                                errMsg = "Batas harian chat AI untuk akun trial sudah habis.";
+                            }
+                        } catch (Exception e) {
+                            errMsg = "Batas harian chat AI untuk akun trial sudah habis.";
+                        }
                     }
                     showErrorBubble(errMsg);
                 }
@@ -281,11 +343,62 @@ public class ChatActivity extends AppCompatActivity {
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 chatAdapter.removeLoadingBubble();
                 showErrorBubble("Tidak dapat terhubung ke server. Periksa koneksi internet kamu.");
-                updateStatusBar("Koneksi gagal · Ketuk pesan merah untuk coba lagi");
+                checkAndApplyChatLimit();
                 scrollToBottom();
             }
         });
     }
+
+    private void checkAndApplyChatLimit() {
+        if (sessionManager == null) return;
+        String subStatus = sessionManager.getAiSubStatus();
+        int remaining = sessionManager.getAiRemainingToday();
+        String upgradeMessage = sessionManager.getAiUpgradeMessage();
+
+        if ("trial".equalsIgnoreCase(subStatus)) {
+            if (remaining <= 0) {
+                etMessage.setEnabled(false);
+                fabSend.setEnabled(false);
+                if (upgradeMessage == null || upgradeMessage.isEmpty()) {
+                    upgradeMessage = "Batas harian chat AI untuk akun trial hanya 3 kali. Yuk lakukan upgrade untuk menikmati akses yang lebih penuh.";
+                }
+                tvLimitMessage.setText(upgradeMessage);
+                layoutLimitBanner.setVisibility(View.VISIBLE);
+                updateStatusBar("Batas chat AI tercapai");
+            } else {
+                etMessage.setEnabled(true);
+                fabSend.setEnabled(true);
+                layoutLimitBanner.setVisibility(View.GONE);
+                updateStatusBar("Online · Sisa " + remaining + " chat AI hari ini");
+            }
+        } else {
+            etMessage.setEnabled(true);
+            fabSend.setEnabled(true);
+            layoutLimitBanner.setVisibility(View.GONE);
+            updateStatusBar("Online");
+        }
+    }
+
+    private void refreshChatLimit() {
+        apiService.getProfile().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        sessionManager.updateAiChatLimit(body);
+                        checkAndApplyChatLimit();
+                    } catch (Exception ignored) {}
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                // Keep local state on error
+            }
+        });
+    }
+
 
     // ===== HELPERS =====
 

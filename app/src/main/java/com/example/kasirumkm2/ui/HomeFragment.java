@@ -15,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.kasirumkm2.MainActivity;
 import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.adapter.SalesAdapter;
 import com.example.kasirumkm2.api.ApiClient;
@@ -63,6 +64,7 @@ public class HomeFragment extends Fragment {
         setupRecentSales();
         setupQuickActions();
         setupSwipeRefresh();
+        updateSubscriptionCard();
 
         loadDashboardData();
     }
@@ -127,6 +129,102 @@ public class HomeFragment extends Fragment {
     private void loadDashboardData() {
         loadDailyReport();
         loadRecentSales();
+        syncSubscriptionAndProfile();
+    }
+
+    private void syncSubscriptionAndProfile() {
+        if (!isAdded()) return;
+
+        apiService.getProfile().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        sessionManager.updateAiChatLimit(body);
+                        JsonObject data = body.getAsJsonObject("data");
+                        
+                        if (data.has("user") && !data.get("user").isJsonNull()) {
+                            JsonObject userObj = data.getAsJsonObject("user");
+                            String name = userObj.get("name").getAsString();
+                            String email = userObj.get("email").getAsString();
+                            String role = userObj.has("role") ? userObj.get("role").getAsString() : "admin";
+                            sessionManager.saveSession(
+                                    sessionManager.getToken(),
+                                    userObj.get("id").getAsInt(),
+                                    name,
+                                    email,
+                                    role
+                            );
+                        }
+
+                        if (data.has("company") && !data.get("company").isJsonNull()) {
+                            JsonObject comp = data.getAsJsonObject("company");
+                            int compId = comp.get("id").getAsInt();
+                            String compName = comp.get("company_name").getAsString();
+                            String compCode = comp.get("company_code").getAsString();
+                            sessionManager.saveCompany(compId, compName, compCode);
+                        }
+                        
+                        if (data.has("subscription") && !data.get("subscription").isJsonNull()) {
+                            JsonObject sub = data.getAsJsonObject("subscription");
+                            String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "expired";
+                            boolean subActive = sub.has("is_active") && !sub.get("is_active").isJsonNull() && sub.get("is_active").getAsBoolean();
+                            boolean subLifetime = sub.has("is_lifetime") && !sub.get("is_lifetime").isJsonNull() && sub.get("is_lifetime").getAsBoolean();
+                            String trialEndsAt = sub.has("trial_ends_at") && !sub.get("trial_ends_at").isJsonNull() ? sub.get("trial_ends_at").getAsString() : "";
+                            String endsAt = sub.has("ends_at") && !sub.get("ends_at").isJsonNull() ? sub.get("ends_at").getAsString() : "";
+                            sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
+                        }
+
+                        setupHeader();
+                        updateSubscriptionCard();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                // Ignore
+            }
+        });
+
+        apiService.getSubscriptionActive().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        sessionManager.updateAiChatLimit(body);
+                        if (body.has("data") && !body.get("data").isJsonNull()) {
+                            JsonObject sub = body.getAsJsonObject("data");
+                            String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "expired";
+                            boolean subActive = sub.has("is_active") && !sub.get("is_active").isJsonNull() && sub.get("is_active").getAsBoolean();
+                            boolean subLifetime = sub.has("is_lifetime") && !sub.get("is_lifetime").isJsonNull() && sub.get("is_lifetime").getAsBoolean();
+                            String trialEndsAt = sub.has("trial_ends_at") && !sub.get("trial_ends_at").isJsonNull() ? sub.get("trial_ends_at").getAsString() : "";
+                            String endsAt = sub.has("ends_at") && !sub.get("ends_at").isJsonNull() ? sub.get("ends_at").getAsString() : "";
+
+                            sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
+                            updateSubscriptionCard();
+                            
+                            if (getActivity() instanceof MainActivity) {
+                                ((MainActivity) getActivity()).updateSubscriptionBanner();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                // Ignore
+            }
+        });
     }
 
     private void loadDailyReport() {
@@ -223,6 +321,7 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         // Refresh data when coming back
+        updateSubscriptionCard();
         loadDashboardData();
     }
 
@@ -479,6 +578,75 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+    }
+
+    private void updateSubscriptionCard() {
+        if (!isAdded() || binding == null) return;
+        
+        binding.cardSubscriptionStatus.setVisibility(View.VISIBLE);
+        
+        String status = sessionManager.getSubscriptionStatus();
+        boolean isActive = sessionManager.isSubscriptionActive();
+        boolean isLifetime = sessionManager.isSubscriptionLifetime();
+        String endsAt = sessionManager.getSubscriptionEndsAt();
+        String trialEndsAt = sessionManager.getSubscriptionTrialEndsAt();
+        
+        if (isLifetime) {
+            binding.tvSubCardIcon.setText("👑");
+            binding.tvSubCardTitle.setText(getString(R.string.subscription_status_lifetime));
+            binding.tvSubCardSubtitle.setText("Terima kasih telah mendukung kami!");
+            binding.btnSubCardAction.setVisibility(View.GONE);
+            binding.cardSubscriptionStatus.setStrokeColor(requireContext().getColor(R.color.purple_primary));
+            binding.layoutSubCardBackground.setBackgroundColor(requireContext().getColor(R.color.purple_light));
+        } else if ("active".equals(status) && isActive) {
+            binding.tvSubCardIcon.setText("⭐");
+            binding.tvSubCardTitle.setText(getString(R.string.subscription_status_active));
+            String formattedDate = formatDateString(endsAt);
+            binding.tvSubCardSubtitle.setText(getString(R.string.subscription_days_remaining, formattedDate));
+            binding.btnSubCardAction.setText("KELOLA");
+            binding.btnSubCardAction.setVisibility(View.VISIBLE);
+            binding.btnSubCardAction.setOnClickListener(v -> openSubscriptionScreen());
+            binding.cardSubscriptionStatus.setStrokeColor(requireContext().getColor(R.color.border_light));
+            binding.layoutSubCardBackground.setBackgroundColor(requireContext().getColor(R.color.success_green_light));
+        } else if ("trial".equals(status) && isActive) {
+            binding.tvSubCardIcon.setText("⏳");
+            binding.tvSubCardTitle.setText(getString(R.string.subscription_status_trial));
+            String formattedDate = formatDateString(trialEndsAt);
+            binding.tvSubCardSubtitle.setText(getString(R.string.subscription_days_remaining, formattedDate));
+            binding.btnSubCardAction.setText("UPGRADE");
+            binding.btnSubCardAction.setVisibility(View.VISIBLE);
+            binding.btnSubCardAction.setOnClickListener(v -> openSubscriptionScreen());
+            binding.cardSubscriptionStatus.setStrokeColor(requireContext().getColor(R.color.border_light));
+            binding.layoutSubCardBackground.setBackgroundColor(requireContext().getColor(R.color.blue_info_light));
+        } else {
+            // Expired or inactive
+            binding.tvSubCardIcon.setText("⚠️");
+            binding.tvSubCardTitle.setText(getString(R.string.subscription_status_expired));
+            binding.tvSubCardSubtitle.setText("Akses dibatasi. Silakan lakukan aktivasi.");
+            binding.btnSubCardAction.setText("UPGRADE");
+            binding.btnSubCardAction.setVisibility(View.VISIBLE);
+            binding.btnSubCardAction.setOnClickListener(v -> openSubscriptionScreen());
+            binding.cardSubscriptionStatus.setStrokeColor(requireContext().getColor(R.color.danger_red));
+            binding.layoutSubCardBackground.setBackgroundColor(requireContext().getColor(R.color.danger_red_light));
+        }
+    }
+    
+    private void openSubscriptionScreen() {
+        Intent intent = new Intent(requireContext(), SubscriptionActivity.class);
+        startActivity(intent);
+    }
+    
+    private String formatDateString(String rawDate) {
+        if (rawDate == null || rawDate.isEmpty()) return "-";
+        try {
+            String patternInput = rawDate.contains(" ") ? "yyyy-MM-dd HH:mm:ss" : "yyyy-MM-dd";
+            SimpleDateFormat sdfInput = new SimpleDateFormat(patternInput, Locale.US);
+            Date date = sdfInput.parse(rawDate);
+            SimpleDateFormat sdfOutput = new SimpleDateFormat("dd MMM yyyy", new Locale("id", "ID"));
+            return sdfOutput.format(date);
+        } catch (Exception e) {
+            return rawDate;
+        }
     }
 
     @Override

@@ -154,6 +154,75 @@
 
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border_light" />
 
+                    <!-- Option 1.5: Langganan & Pembayaran -->
+                    <LinearLayout
+                        android:id="@+id/layoutOptionSubscription"
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="@dimen/card_padding"
+                        android:paddingEnd="@dimen/card_padding"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💳"
+                            android:textSize="20sp"
+                            android:layout_marginEnd="@dimen/spacing_md" />
+                        
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+                            
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/subscription_menu"
+                                android:textColor="@color/text_dark"
+                                android:textSize="@dimen/text_body_large" />
+                            
+                            <TextView
+                                android:id="@+id/tvSubscriptionMenuSubtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Status paket: Trial"
+                                android:textColor="@color/text_gray"
+                                android:textSize="12dp"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvSubscriptionBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Trial"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingBottom="3dp"
+                            android:background="@drawable/bg_badge_rounded"
+                            android:textColor="@color/blue_info"
+                            android:backgroundTint="@color/blue_info_light"
+                            android:layout_marginEnd="8dp" />
+                        
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="›"
+                            android:textColor="@color/text_light"
+                            android:textSize="22sp" />
+                    </LinearLayout>
+
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/border_light" />
+
                     <!-- Option 2: Printer Bluetooth -->
                     <LinearLayout
                         android:id="@+id/layoutOptionPrinter"

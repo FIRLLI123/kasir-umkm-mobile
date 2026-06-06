@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.adapter.StockMutationAdapter;
+import com.example.kasirumkm2.session.SessionManager;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityStockDetailBinding;
@@ -128,8 +129,17 @@ public class StockDetailActivity extends AppCompatActivity {
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> finish());
 
-        // FAB: Adjust stock
-        binding.fabAdjust.setOnClickListener(v -> showAdjustmentSheet());
+        // FAB: Adjust stock (blocked if subscription is expired)
+        binding.fabAdjust.setOnClickListener(v -> {
+            SessionManager sessionManager = new SessionManager(this);
+            if (sessionManager.isSubscriptionExpired()) {
+                android.widget.Toast.makeText(this, "Masa aktif langganan Anda telah habis. Akses dibatasi.", android.widget.Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(this, SubscriptionActivity.class);
+                startActivity(intent);
+                return;
+            }
+            showAdjustmentSheet();
+        });
 
         // Date filter
         binding.tvFilterDate.setOnClickListener(v -> showDateRangePicker());

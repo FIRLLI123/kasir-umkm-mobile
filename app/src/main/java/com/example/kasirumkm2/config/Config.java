@@ -39,4 +39,20 @@ public class Config {
     public static final String KEY_COMPANY_ID = "company_id";
     public static final String KEY_COMPANY_NAME = "company_name";
     public static final String KEY_COMPANY_CODE = "company_code";
+
+    // Subscription Settings
+    public static final String KEY_SUB_STATUS = "subscription_status";
+    public static final String KEY_SUB_IS_ACTIVE = "subscription_is_active";
+    public static final String KEY_SUB_IS_LIFETIME = "subscription_is_lifetime";
+    public static final String KEY_SUB_TRIAL_ENDS_AT = "subscription_trial_ends_at";
+    public static final String KEY_SUB_ENDS_AT = "subscription_ends_at";
+
+    // AI Chat Limit Settings
+    public static final String KEY_AI_DAILY_LIMIT = "ai_daily_limit";
+    public static final String KEY_AI_USED_TODAY = "ai_used_today";
+    public static final String KEY_AI_REMAINING_TODAY = "ai_remaining_today";
+    public static final String KEY_AI_SUB_STATUS = "ai_subscription_status";
+    public static final String KEY_AI_SHOW_UPGRADE = "ai_show_upgrade";
+    public static final String KEY_AI_UPGRADE_MESSAGE = "ai_upgrade_message";
 }
+

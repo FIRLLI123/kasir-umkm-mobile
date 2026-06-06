@@ -242,6 +242,54 @@
 
     </FrameLayout>
 
+    <!-- ===== LIMIT WARNING BANNER ===== -->
+    <LinearLayout
+        android:id="@+id/layoutLimitBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FF1E293B"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="top"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvLimitMessage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Batas harian chat AI untuk akun trial hanya 3 kali. Yuk lakukan upgrade untuk menikmati akses yang lebih penuh."
+                android:textColor="#FFCBD5E1"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUpgradeNow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Upgrade Sekarang"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:backgroundTint="#FF0EA5A0"
+            app:cornerRadius="8dp"
+            style="@style/Widget.MaterialComponents.Button" />
+    </LinearLayout>
+
     <!-- ===== INPUT AREA ===== -->
     <LinearLayout
         android:layout_width="match_parent"

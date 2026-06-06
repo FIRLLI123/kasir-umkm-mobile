@@ -1,5 +1,6 @@
 package com.example.kasirumkm2.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -7,6 +8,7 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.kasirumkm2.R;
+import com.example.kasirumkm2.session.SessionManager;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.data.Customer;
@@ -39,6 +41,15 @@ public class CustomerFormActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityCustomerFormBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        SessionManager sessionManager = new SessionManager(this);
+        if (sessionManager.isSubscriptionExpired()) {
+            android.widget.Toast.makeText(this, "Masa aktif langganan Anda telah habis. Akses dibatasi.", android.widget.Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(this, SubscriptionActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         apiService = ApiClient.getApiService(this);
 

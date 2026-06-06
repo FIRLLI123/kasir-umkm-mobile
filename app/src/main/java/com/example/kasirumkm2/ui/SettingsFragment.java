@@ -1,6 +1,7 @@
 package com.example.kasirumkm2.ui;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.kasirumkm2.R;
@@ -49,8 +51,55 @@ public class SettingsFragment extends Fragment {
 
         displayProfileSummary();
         updatePrinterStatusDisplay();
+        updateSubscriptionBadge();
         binding.tvAppVersion.setText("v" + com.example.kasirumkm2.utils.CurrencyHelper.getAppVersion(requireContext()));
         setupListeners();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (binding != null && sessionManager != null) {
+            updateSubscriptionBadge();
+        }
+    }
+
+    private void updateSubscriptionBadge() {
+        String status = sessionManager.getSubscriptionStatus();
+        boolean isLifetime = sessionManager.isSubscriptionLifetime();
+
+        String badgeText;
+        int textColorRes;
+        int bgColorRes;
+        String subtitleStatus;
+
+        if (isLifetime) {
+            badgeText = "Lifetime";
+            textColorRes = R.color.sub_lifetime;
+            bgColorRes = R.color.sub_lifetime_bg;
+            subtitleStatus = "Lifetime";
+        } else if ("trial".equalsIgnoreCase(status)) {
+            badgeText = "Trial";
+            textColorRes = R.color.sub_trial;
+            bgColorRes = R.color.sub_trial_bg;
+            subtitleStatus = "Masa Trial";
+        } else if ("active".equalsIgnoreCase(status)) {
+            badgeText = "Aktif";
+            textColorRes = R.color.sub_active;
+            bgColorRes = R.color.sub_active_bg;
+            subtitleStatus = "Aktif";
+        } else {
+            badgeText = "Expired";
+            textColorRes = R.color.sub_expired;
+            bgColorRes = R.color.sub_expired_bg;
+            subtitleStatus = "Expired";
+        }
+
+        binding.tvSubscriptionBadge.setText(badgeText);
+        binding.tvSubscriptionBadge.setTextColor(ContextCompat.getColor(requireContext(), textColorRes));
+        binding.tvSubscriptionBadge.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), bgColorRes)));
+
+        binding.tvSubscriptionMenuSubtitle.setText(getString(R.string.subscription_menu_subtitle, subtitleStatus));
     }
 
     private void displayProfileSummary() {
@@ -92,6 +141,10 @@ public class SettingsFragment extends Fragment {
 
         binding.layoutOptionProfile.setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), ProfileActivity.class));
+        });
+
+        binding.layoutOptionSubscription.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), SubscriptionActivity.class));
         });
 
         binding.layoutOptionPrinter.setOnClickListener(v -> {

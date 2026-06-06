@@ -14,11 +14,19 @@ import com.example.kasirumkm2.ui.ReportFragment;
 import com.example.kasirumkm2.ui.SettingsFragment;
 import com.example.kasirumkm2.ui.POSActivity;
 import com.example.kasirumkm2.ui.ChatActivity;
+import com.example.kasirumkm2.api.ApiClient;
+import com.example.kasirumkm2.api.ApiService;
+import com.google.gson.JsonObject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private SessionManager sessionManager;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         sessionManager = new SessionManager(this);
+        apiService = ApiClient.getApiService(this);
 
         // Check login
         if (!sessionManager.isLoggedIn()) {
@@ -40,6 +49,26 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment());
         }
+
+        // Handle double back press to exit app
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            private long backPressedTime;
+            private android.widget.Toast backToast;
+
+            @Override
+            public void handleOnBackPressed() {
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    if (backToast != null) {
+                        backToast.cancel();
+                    }
+                    finish();
+                } else {
+                    backToast = android.widget.Toast.makeText(MainActivity.this, "Tekan sekali lagi untuk keluar", android.widget.Toast.LENGTH_SHORT);
+                    backToast.show();
+                    backPressedTime = System.currentTimeMillis();
+                }
+            }
+        });
     }
 
     private void setupBottomNavigation() {
@@ -49,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(new HomeFragment());
                 return true;
             } else if (id == R.id.nav_kasir) {
+                if (checkExpiredAndBlock()) {
+                    return false;
+                }
                 // Launch POS as separate activity
                 startActivity(new Intent(this, POSActivity.class));
                 return false; // Don't switch tab, stay on current
@@ -92,5 +124,138 @@ public class MainActivity extends AppCompatActivity {
         if (binding != null && binding.bottomNav.getSelectedItemId() == R.id.nav_kasir) {
             binding.bottomNav.setSelectedItemId(R.id.nav_home);
         }
+        
+        updateSubscriptionBanner();
+        checkSubscriptionSync();
+    }
+
+    public void updateSubscriptionBanner() {
+        if (sessionManager.isSubscriptionExpired()) {
+            binding.layoutExpiryBanner.setVisibility(android.view.View.VISIBLE);
+            binding.btnUpgradeBanner.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, com.example.kasirumkm2.ui.SubscriptionActivity.class);
+                startActivity(intent);
+            });
+        } else {
+            binding.layoutExpiryBanner.setVisibility(android.view.View.GONE);
+        }
+    }
+
+    private void checkSubscriptionSync() {
+        if (!sessionManager.isLoggedIn()) return;
+
+        apiService.getProfile().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        sessionManager.updateAiChatLimit(body);
+                        JsonObject data = body.getAsJsonObject("data");
+                        if (data.has("company") && !data.get("company").isJsonNull()) {
+                            JsonObject comp = data.getAsJsonObject("company");
+                            int compId = comp.get("id").getAsInt();
+                            String compName = comp.get("company_name").getAsString();
+                            String compCode = comp.get("company_code").getAsString();
+                            sessionManager.saveCompany(compId, compName, compCode);
+                        }
+                    } catch (Exception ignored) {}
+                }
+
+                // Then fetch active subscription
+                apiService.getSubscriptionActive().enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            try {
+                                JsonObject body = response.body();
+                                sessionManager.updateAiChatLimit(body);
+                                if (body.has("data") && !body.get("data").isJsonNull()) {
+                                    JsonObject sub = body.getAsJsonObject("data");
+                                    String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "expired";
+                                    boolean subActive = sub.has("is_active") && !sub.get("is_active").isJsonNull() && sub.get("is_active").getAsBoolean();
+                                    boolean subLifetime = sub.has("is_lifetime") && !sub.get("is_lifetime").isJsonNull() && sub.get("is_lifetime").getAsBoolean();
+                                    String trialEndsAt = sub.has("trial_ends_at") && !sub.get("trial_ends_at").isJsonNull() ? sub.get("trial_ends_at").getAsString() : "";
+                                    String endsAt = sub.has("ends_at") && !sub.get("ends_at").isJsonNull() ? sub.get("ends_at").getAsString() : "";
+
+                                    sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
+                                    updateSubscriptionBanner();
+                                    
+                                    // Also refresh HomeFragment if it's currently loaded to sync cards
+                                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+                                    if (currentFragment instanceof HomeFragment) {
+                                        ((HomeFragment) currentFragment).onResume();
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // ignore silently
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        // ignore silently
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                // If profile fails, still try to fetch active subscription
+                apiService.getSubscriptionActive().enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            try {
+                                JsonObject body = response.body();
+                                sessionManager.updateAiChatLimit(body);
+                                if (body.has("data") && !body.get("data").isJsonNull()) {
+                                    JsonObject sub = body.getAsJsonObject("data");
+                                    String subStatus = sub.has("status") && !sub.get("status").isJsonNull() ? sub.get("status").getAsString() : "expired";
+                                    boolean subActive = sub.has("is_active") && !sub.get("is_active").isJsonNull() && sub.get("is_active").getAsBoolean();
+                                    boolean subLifetime = sub.has("is_lifetime") && !sub.get("is_lifetime").isJsonNull() && sub.get("is_lifetime").getAsBoolean();
+                                    String trialEndsAt = sub.has("trial_ends_at") && !sub.get("trial_ends_at").isJsonNull() ? sub.get("trial_ends_at").getAsString() : "";
+                                    String endsAt = sub.has("ends_at") && !sub.get("ends_at").isJsonNull() ? sub.get("ends_at").getAsString() : "";
+
+                                    sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
+                                    updateSubscriptionBanner();
+                                    
+                                    // Also refresh HomeFragment if it's currently loaded to sync cards
+                                    Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+                                    if (currentFragment instanceof HomeFragment) {
+                                        ((HomeFragment) currentFragment).onResume();
+                                    }
+                                }
+                            } catch (Exception e) {
+                                // ignore silently
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {
+                        // ignore silently
+                    }
+                });
+            }
+        });
+    }
+
+    private boolean checkExpiredAndBlock() {
+        if (sessionManager.isSubscriptionExpired()) {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Masa Aktif Habis")
+                    .setMessage(getString(R.string.subscription_expired_desc))
+                    .setCancelable(true)
+                    .setPositiveButton("UPGRADE / PERPANJANG", (dialog, which) -> {
+                        Intent intent = new Intent(MainActivity.this, com.example.kasirumkm2.ui.SubscriptionActivity.class);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("BATAL", null)
+                    .show();
+            return true;
+        }
+        return false;
     }
 }

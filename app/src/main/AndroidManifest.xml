@@ -47,6 +47,25 @@
             android:exported="false"
             android:theme="@style/Theme.KasirUmkm2.Login" />
 
+        <!-- Register -->
+        <activity
+            android:name=".ui.RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KasirUmkm2.Login" />
+
+        <!-- Subscription Plan Selector -->
+        <activity
+            android:name=".ui.SubscriptionActivity"
+            android:exported="false"
+            android:label="@string/subscription_title" />
+
+        <!-- QRIS Payment Gateway -->
+        <activity
+            android:name=".ui.PaymentActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:label="@string/payment_title" />
+
         <!-- Main (BottomNav Host) -->
         <activity
             android:name=".MainActivity"

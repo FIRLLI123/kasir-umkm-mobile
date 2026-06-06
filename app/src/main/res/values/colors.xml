@@ -81,4 +81,14 @@
     <color name="blue_info_light">#FFEFF6FF</color>
     <color name="yellow_warning">#FFF59E0B</color>
     <color name="yellow_warning_light">#FFFFFBEB</color>
+
+    <!-- Subscription Status Colors -->
+    <color name="sub_trial">#FF3B82F6</color>
+    <color name="sub_trial_bg">#FFEFF6FF</color>
+    <color name="sub_active">#FF22C55E</color>
+    <color name="sub_active_bg">#FFF0FDF4</color>
+    <color name="sub_lifetime">#FF7C3AED</color>
+    <color name="sub_lifetime_bg">#FFF3E8FF</color>
+    <color name="sub_expired">#FFEF4444</color>
+    <color name="sub_expired_bg">#FFFEF2F2</color>
 </resources>

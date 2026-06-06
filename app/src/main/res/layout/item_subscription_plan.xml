@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardPlan"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/spacing_md"
+    android:layout_marginEnd="@dimen/spacing_md"
+    android:layout_marginBottom="@dimen/spacing_md"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1.5dp"
+    app:strokeColor="@color/border"
+    app:cardBackgroundColor="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Highlight/Promo Badge (Default GONE, visible for lifetime/promo plans) -->
+        <TextView
+            android:id="@+id/tvPromoBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:text="PROMO SPESIAL"
+            android:textColor="@color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:background="@drawable/bg_badge_danger"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone" />
+
+        <!-- Plan Name -->
+        <TextView
+            android:id="@+id/tvPlanName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:text="Promo 6 Bulan"
+            android:textColor="@color/text_dark"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Plan Price -->
+        <TextView
+            android:id="@+id/tvPlanPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvPlanName"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="8dp"
+            android:text="Rp 150.000"
+            android:textColor="@color/primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <!-- Duration Indicator -->
+        <TextView
+            android:id="@+id/tvPlanDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvPlanPrice"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="4dp"
+            android:text="Masa aktif: 180 Hari"
+            android:textColor="@color/text_gray"
+            android:textSize="12sp" />
+
+        <!-- Plan Description -->
+        <TextView
+            android:id="@+id/tvPlanDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvPlanDuration"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="12dp"
+            android:text="Dapatkan semua akses premium ke fitur pencatatan transaksi, laporan detail, backup, dan chatbot AI."
+            android:textColor="@color/text_gray"
+            android:textSize="13sp" />
+
+        <!-- Select Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectPlan"
+            style="@style/Widget.KasirUmkm.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvPlanDescription"
+            android:layout_marginTop="16dp"
+            android:text="@string/btn_checkout" />
+    </RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
