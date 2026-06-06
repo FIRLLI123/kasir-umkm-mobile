@@ -97,4 +97,15 @@
         <item name="cornerSizeTopRight">20dp</item>
     </style>
 
+    <!-- Prefix Text Appearance -->
+    <style name="TextAppearance.KasirUmkm.Prefix" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/text_gray</item>
+        <item name="android:textSize">@dimen/text_body_large</item>
+    </style>
+
+    <style name="TextAppearance.KasirUmkm.Prefix.Medium" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textColor">@color/text_gray</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
 </resources>

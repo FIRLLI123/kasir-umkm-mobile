@@ -156,11 +156,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_md"
-                app:prefixText="Rp ">
+                app:prefixText="Rp "
+                app:prefixTextAppearance="@style/TextAppearance.KasirUmkm.Prefix">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCostPrice"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:hint="Harga Modal"
                     android:inputType="numberDecimal"
                     android:textSize="@dimen/text_body_large" />
@@ -174,11 +177,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_md"
                 app:prefixText="Rp "
+                app:prefixTextAppearance="@style/TextAppearance.KasirUmkm.Prefix"
                 app:helperText="Harga jual untuk pembeli golongan USER">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPriceUser"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:hint="Harga Jual - USER"
                     android:inputType="numberDecimal"
                     android:textSize="@dimen/text_body_large" />
@@ -192,11 +198,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_md"
                 app:prefixText="Rp "
+                app:prefixTextAppearance="@style/TextAppearance.KasirUmkm.Prefix"
                 app:helperText="Harga jual untuk pembeli golongan FREELANCER">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPriceFreelancer"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:hint="Harga Jual - FREELANCER"
                     android:inputType="numberDecimal"
                     android:textSize="@dimen/text_body_large" />
@@ -210,11 +219,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/spacing_xl"
                 app:prefixText="Rp "
+                app:prefixTextAppearance="@style/TextAppearance.KasirUmkm.Prefix"
                 app:helperText="Harga jual untuk pembeli golongan GROSIR">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etPriceGrosir"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:hint="Harga Jual - GROSIR"
                     android:inputType="numberDecimal"
                     android:textSize="@dimen/text_body_large" />

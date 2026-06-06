@@ -12,6 +12,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
+    <!-- Camera for barcode scanning -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- Haptic feedback -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -86,6 +89,7 @@
         <activity android:name=".ui.ProductListActivity" android:exported="false" />
         <activity android:name=".ui.ProductFormActivity" android:exported="false" />
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
+        <activity android:name=".ui.ProductBulkActivity" android:exported="false" />
 
         <!-- Stock -->
         <activity android:name=".ui.StockActivity" android:exported="false" />

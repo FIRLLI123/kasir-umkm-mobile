@@ -6,11 +6,22 @@ import android.widget.EditText;
 
 public class NumberTextWatcher implements TextWatcher {
 
+    public interface OnTextChangedListener {
+        void onTextChanged(String text);
+    }
+
     private final EditText editText;
+    private final OnTextChangedListener listener;
     private String current = "";
 
     public NumberTextWatcher(EditText editText) {
         this.editText = editText;
+        this.listener = null;
+    }
+
+    public NumberTextWatcher(EditText editText, OnTextChangedListener listener) {
+        this.editText = editText;
+        this.listener = listener;
     }
 
     @Override
@@ -44,6 +55,10 @@ public class NumberTextWatcher implements TextWatcher {
             }
 
             editText.addTextChangedListener(this);
+        }
+
+        if (listener != null) {
+            listener.onTextChanged(editText.getText().toString());
         }
     }
 }

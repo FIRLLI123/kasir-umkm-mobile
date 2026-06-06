@@ -123,8 +123,22 @@ public class ProductListActivity extends AppCompatActivity {
 
     private void setupFab() {
         binding.fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, ProductFormActivity.class);
-            startActivity(intent);
+            androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, binding.fabAdd);
+            popup.getMenu().add(android.view.Menu.NONE, 1, android.view.Menu.NONE, "Tambah Satu Produk");
+            popup.getMenu().add(android.view.Menu.NONE, 2, android.view.Menu.NONE, "Tambah Banyak");
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == 1) {
+                    Intent intent = new Intent(this, ProductFormActivity.class);
+                    startActivity(intent);
+                    return true;
+                } else if (item.getItemId() == 2) {
+                    Intent intent = new Intent(this, ProductBulkActivity.class);
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
     }
 

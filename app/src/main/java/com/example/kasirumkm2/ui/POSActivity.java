@@ -208,6 +208,26 @@ public class POSActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {}
         });
+
+        binding.btnQuickAdd.setOnClickListener(v -> showQuickAddDialog());
+    }
+
+    private void showQuickAddDialog() {
+        ProductQuickAddDialog dialog = ProductQuickAddDialog.newInstance(searchQuery, product -> {
+            // Add to product list
+            productList.add(0, product);
+            adapter.setData(productList);
+
+            // Automatically select/add to cart
+            addToCart(product);
+
+            // Clear search query
+            binding.etSearch.setText("");
+            searchQuery = "";
+            currentPage = 1;
+            loadProducts(true);
+        });
+        dialog.show(getSupportFragmentManager(), "ProductQuickAddDialog");
     }
 
     private void setupSwipeRefresh() {
@@ -472,6 +492,16 @@ public class POSActivity extends AppCompatActivity {
     private void toggleEmptyState(boolean empty) {
         binding.layoutEmpty.setVisibility(empty ? View.VISIBLE : View.GONE);
         binding.rvProducts.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (empty) {
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+                binding.tvEmptyMessage.setText("Produk \"" + searchQuery + "\" tidak ditemukan");
+                binding.btnQuickAdd.setText("Tambah \"" + searchQuery + "\" Cepat");
+                binding.btnQuickAdd.setVisibility(View.VISIBLE);
+            } else {
+                binding.tvEmptyMessage.setText("Belum ada produk");
+                binding.btnQuickAdd.setVisibility(View.GONE);
+            }
+        }
     }
 
     private void handleUnauthorized() {

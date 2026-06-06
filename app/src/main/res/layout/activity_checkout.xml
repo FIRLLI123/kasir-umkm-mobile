@@ -192,11 +192,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/spacing_md"
-                        app:prefixText="Rp ">
+                        app:prefixText="Rp "
+                        app:prefixTextAppearance="@style/TextAppearance.KasirUmkm.Prefix">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPaidAmount"
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/input_height"
+                            android:layout_height="wrap_content"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp"
                             android:hint="Uang Diterima (Tunai)"
                             android:inputType="number"
                             android:textSize="@dimen/text_body_large" />

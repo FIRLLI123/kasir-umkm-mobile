@@ -84,6 +84,12 @@ public interface ApiService {
     @POST("products")
     Call<JsonObject> createProduct(@Body JsonObject body);
 
+    @POST("products/bulk")
+    Call<JsonObject> createProductsBulk(@Body JsonObject body);
+
+    @POST("products/quick-create")
+    Call<JsonObject> createProductQuick(@Body JsonObject body);
+
     @PUT("products/{id}")
     Call<JsonObject> updateProduct(@Path("id") int id, @Body JsonObject body);
 
