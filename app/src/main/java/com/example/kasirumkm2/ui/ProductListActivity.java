@@ -126,13 +126,28 @@ public class ProductListActivity extends AppCompatActivity {
             androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, binding.fabAdd);
             popup.getMenu().add(android.view.Menu.NONE, 1, android.view.Menu.NONE, "Tambah Satu Produk");
             popup.getMenu().add(android.view.Menu.NONE, 2, android.view.Menu.NONE, "Tambah Banyak");
+            popup.getMenu().add(android.view.Menu.NONE, 3, android.view.Menu.NONE, "Import via Excel");
             popup.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
                     Intent intent = new Intent(this, ProductFormActivity.class);
                     startActivity(intent);
                     return true;
                 } else if (item.getItemId() == 2) {
+                    com.example.kasirumkm2.session.SessionManager sessionManager = new com.example.kasirumkm2.session.SessionManager(this);
+                    if ("trial".equalsIgnoreCase(sessionManager.getSubscriptionStatus())) {
+                        showTrialBlockDialog("Tambah Banyak Produk");
+                        return true;
+                    }
                     Intent intent = new Intent(this, ProductBulkActivity.class);
+                    startActivity(intent);
+                    return true;
+                } else if (item.getItemId() == 3) {
+                    com.example.kasirumkm2.session.SessionManager sessionManager = new com.example.kasirumkm2.session.SessionManager(this);
+                    if ("trial".equalsIgnoreCase(sessionManager.getSubscriptionStatus())) {
+                        showTrialBlockDialog("Import via Excel");
+                        return true;
+                    }
+                    Intent intent = new Intent(this, ProductImportActivity.class);
                     startActivity(intent);
                     return true;
                 }
@@ -140,6 +155,18 @@ public class ProductListActivity extends AppCompatActivity {
             });
             popup.show();
         });
+    }
+
+    private void showTrialBlockDialog(String featureName) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Fitur Premium 💎")
+                .setMessage("Fitur '" + featureName + "' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nSilakan aktifkan paket langganan Anda untuk membuka semua fitur premium.")
+                .setPositiveButton("Aktifkan Premium", (dialog, which) -> {
+                    Intent intent = new Intent(this, SubscriptionActivity.class);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Batal", null)
+                .show();
     }
 
     private void setupSwipeRefresh() {

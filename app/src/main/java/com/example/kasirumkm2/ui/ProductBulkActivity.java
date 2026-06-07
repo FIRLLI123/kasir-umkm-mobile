@@ -69,6 +69,13 @@ public class ProductBulkActivity extends AppCompatActivity {
             finish();
             return;
         }
+        if ("trial".equalsIgnoreCase(sessionManager.getSubscriptionStatus())) {
+            Toast.makeText(this, "Fitur ini tidak tersedia untuk paket Trial. Silakan aktifkan langganan Premium Anda.", Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(this, SubscriptionActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
 
         apiService = ApiClient.getApiService(this);
 

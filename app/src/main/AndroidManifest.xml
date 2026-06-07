@@ -90,10 +90,12 @@
         <activity android:name=".ui.ProductFormActivity" android:exported="false" />
         <activity android:name=".ui.ProductDetailActivity" android:exported="false" />
         <activity android:name=".ui.ProductBulkActivity" android:exported="false" />
+        <activity android:name=".ui.ProductImportActivity" android:exported="false" />
 
         <!-- Stock -->
         <activity android:name=".ui.StockActivity" android:exported="false" />
         <activity android:name=".ui.StockDetailActivity" android:exported="false" />
+        <activity android:name=".ui.StockBulkInActivity" android:exported="false" />
 
         <!-- Checkout & Success -->
         <activity android:name=".ui.CheckoutActivity" android:exported="false" />

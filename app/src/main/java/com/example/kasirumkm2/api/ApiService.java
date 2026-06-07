@@ -14,6 +14,10 @@ import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.QueryMap;
+import retrofit2.http.Multipart;
+import retrofit2.http.Part;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
 public interface ApiService {
 
@@ -161,6 +165,9 @@ public interface ApiService {
     @POST("stocks/adjustments")
     Call<JsonObject> createStockAdjustment(@Body JsonObject body);
 
+    @POST("stocks/bulk-stock-in")
+    Call<JsonObject> bulkStockIn(@Body JsonObject body);
+
     // ======================== APP SETTINGS ========================
 
     @GET("app-settings")
@@ -195,7 +202,16 @@ public interface ApiService {
     Call<JsonObject> deleteUser(@Path("id") int id);
 
     // ======================== AI CHAT ========================
-
+ 
     @POST("ai/chat")
     Call<JsonObject> chatWithAI(@Body JsonObject body);
+
+    // ======================== PRODUCT IMPORT ========================
+
+    @Multipart
+    @POST("products/import")
+    Call<JsonObject> importProducts(
+            @Part("mode") RequestBody mode,
+            @Part MultipartBody.Part file
+    );
 }

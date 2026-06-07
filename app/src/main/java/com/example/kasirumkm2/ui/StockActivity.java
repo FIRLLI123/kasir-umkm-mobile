@@ -97,6 +97,24 @@ public class StockActivity extends AppCompatActivity {
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> finish());
 
+        binding.btnBulkStockIn.setOnClickListener(v -> {
+            com.example.kasirumkm2.session.SessionManager sessionManager = new com.example.kasirumkm2.session.SessionManager(this);
+            if ("trial".equalsIgnoreCase(sessionManager.getSubscriptionStatus())) {
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Fitur Premium 💎")
+                        .setMessage("Fitur 'Tambah Stok Massal' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nSilakan aktifkan paket langganan Anda untuk membuka semua fitur premium.")
+                        .setPositiveButton("Aktifkan Premium", (dialog, which) -> {
+                            Intent intent = new Intent(this, SubscriptionActivity.class);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Batal", null)
+                        .show();
+                return;
+            }
+            Intent intent = new Intent(StockActivity.this, StockBulkInActivity.class);
+            startActivity(intent);
+        });
+
         // Swipe refresh
         binding.swipeRefresh.setColorSchemeResources(R.color.primary);
         binding.swipeRefresh.setOnRefreshListener(() -> {

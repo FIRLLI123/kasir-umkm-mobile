@@ -60,4 +60,8 @@
     <dimen name="text_body_medium">12sp</dimen>
     <dimen name="text_label_small">10sp</dimen>
     <dimen name="text_caption">11sp</dimen>
+
+    <!-- Card stroke widths -->
+    <dimen name="card_stroke_width_active">2dp</dimen>
+    <dimen name="card_stroke_width_normal">1dp</dimen>
 </resources>

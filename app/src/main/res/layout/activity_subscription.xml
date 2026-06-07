@@ -135,7 +135,41 @@
                         android:layout_height="wrap_content"
                         android:text="✓  Asisten AI Groq Siap Membantu Bisnis Anda"
                         android:textColor="@color/text_dark"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="✓  Tambah Banyak Produk Sekaligus (Premium)"
+                        android:textColor="@color/text_dark"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="✓  Import Produk &amp; Stok via Excel (Premium)"
+                        android:textColor="@color/text_dark"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="✓  Tambah / Mutasi Stok Massal (Premium)"
+                        android:textColor="@color/text_dark"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="* Fitur bertanda (Premium) hanya aktif setelah mengaktifkan Paket Langganan Premium dan tidak dapat diakses pada paket Trial."
+                        android:textColor="@color/danger_red"
+                        android:textSize="11sp"
+                        android:textStyle="italic"
+                        android:layout_marginTop="8dp" />
                 </LinearLayout>
 
                 <!-- Loading / Error View -->
