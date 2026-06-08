@@ -143,6 +143,7 @@
 
             <!-- Role Selection -->
             <TextView
+                android:id="@+id/tvRoleLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Peran / Role Pengguna"

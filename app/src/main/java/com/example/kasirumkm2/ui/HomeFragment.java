@@ -79,6 +79,32 @@ public class HomeFragment extends Fragment {
             binding.tvUserName.setText(sessionManager.getUserName());
         }
 
+        // Set user role badge
+        String role = sessionManager.getUserRole();
+        if (sessionManager.isCompanyOwner()) {
+            role = "OWNER";
+        }
+        binding.tvUserRoleBadge.setVisibility(View.VISIBLE);
+        binding.tvUserRoleBadge.setText(role.toUpperCase());
+
+        int bgColor;
+        int textColor;
+        if ("OWNER".equalsIgnoreCase(role)) {
+            bgColor = requireContext().getColor(R.color.badge_grosir_bg);
+            textColor = requireContext().getColor(R.color.badge_grosir_text);
+        } else if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+            bgColor = requireContext().getColor(R.color.danger_red_light);
+            textColor = requireContext().getColor(R.color.danger_red);
+        } else if ("ADMIN".equalsIgnoreCase(role)) {
+            bgColor = requireContext().getColor(R.color.accent_orange_light);
+            textColor = requireContext().getColor(R.color.accent_orange);
+        } else { // KASIR
+            bgColor = requireContext().getColor(R.color.primary_light);
+            textColor = requireContext().getColor(R.color.primary);
+        }
+        binding.tvUserRoleBadge.setBackgroundTintList(android.content.res.ColorStateList.valueOf(bgColor));
+        binding.tvUserRoleBadge.setTextColor(textColor);
+
         // Avatar initials
         String name = sessionManager.getUserName();
         if (name != null && !name.isEmpty()) {

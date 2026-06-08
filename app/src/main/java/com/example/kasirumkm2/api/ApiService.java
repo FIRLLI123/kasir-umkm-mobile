@@ -29,6 +29,9 @@ public interface ApiService {
     @GET("profile")
     Call<JsonObject> getProfile();
 
+    @POST("profile/change-password")
+    Call<JsonObject> changePassword(@Body JsonObject body);
+
     @POST("logout")
     Call<JsonObject> logout();
 

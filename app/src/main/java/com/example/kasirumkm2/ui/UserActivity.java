@@ -63,9 +63,26 @@ public class UserActivity extends AppCompatActivity {
 
     private void setupFab() {
         binding.fabAdd.setOnClickListener(v -> {
-            Intent intent = new Intent(this, UserFormActivity.class);
-            startActivity(intent);
+            SessionManager sm = new SessionManager(this);
+            if ("trial".equalsIgnoreCase(sm.getSubscriptionStatus())) {
+                showTrialBlockDialog("Tambah Karyawan");
+            } else {
+                Intent intent = new Intent(this, UserFormActivity.class);
+                startActivity(intent);
+            }
         });
+    }
+
+    private void showTrialBlockDialog(String featureName) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Fitur Premium 💎")
+                .setMessage("Fitur '" + featureName + "' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nSilakan aktifkan paket langganan Anda untuk membuka semua fitur premium.")
+                .setPositiveButton("Aktifkan Premium", (dialog, which) -> {
+                    Intent intent = new Intent(this, SubscriptionActivity.class);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Batal", null)
+                .show();
     }
 
     private void setupSwipeRefresh() {

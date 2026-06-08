@@ -144,6 +144,98 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Ubah Password Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardChangePassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="@dimen/card_radius"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/border_light"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/white"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/card_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ubah Password"
+                        android:textColor="@color/text_dark"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="@dimen/spacing_md" />
+
+                    <!-- Password Lama -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilOldPassword"
+                        style="@style/Widget.KasirUmkm.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/text_gray">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etOldPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/input_height"
+                            android:hint="Password Lama"
+                            android:inputType="textPassword"
+                            android:textSize="@dimen/text_body_large" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Password Baru -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilNewPassword"
+                        style="@style/Widget.KasirUmkm.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/text_gray">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNewPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/input_height"
+                            android:hint="Password Baru (min. 6 karakter)"
+                            android:inputType="textPassword"
+                            android:textSize="@dimen/text_body_large" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Konfirmasi Password Baru -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilConfirmNewPassword"
+                        style="@style/Widget.KasirUmkm.TextInputLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_lg"
+                        app:passwordToggleEnabled="true"
+                        app:passwordToggleTint="@color/text_gray">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etConfirmNewPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/input_height"
+                            android:hint="Konfirmasi Password Baru"
+                            android:inputType="textPassword"
+                            android:textSize="@dimen/text_body_large" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Button Simpan -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnChangePassword"
+                        style="@style/Widget.KasirUmkm.Button.Primary"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/button_height_large"
+                        android:text="UBAH PASSWORD" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Security Note -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

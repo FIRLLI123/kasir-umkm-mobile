@@ -58,6 +58,8 @@ public class UserFormActivity extends AppCompatActivity {
         if (sessionManager.isCompanyOwner()) {
             binding.tilCompany.setVisibility(View.GONE);
             binding.rbSuperAdmin.setVisibility(View.GONE);
+            binding.tvRoleLabel.setVisibility(View.GONE);
+            binding.rgRole.setVisibility(View.GONE);
             if (isEditMode) {
                 loadUserData(userJson);
             }
@@ -201,10 +203,12 @@ public class UserFormActivity extends AppCompatActivity {
         String status = binding.switchStatus.isChecked() ? "00" : "99";
 
         String role = "KASIR";
-        if (binding.rbSuperAdmin.isChecked()) {
-            role = "SUPER_ADMIN";
-        } else if (binding.rbAdmin.isChecked()) {
-            role = "ADMIN";
+        if (!sessionManager.isCompanyOwner()) {
+            if (binding.rbSuperAdmin.isChecked()) {
+                role = "SUPER_ADMIN";
+            } else if (binding.rbAdmin.isChecked()) {
+                role = "ADMIN";
+            }
         }
 
         // Validation
