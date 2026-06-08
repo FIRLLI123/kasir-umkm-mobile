@@ -39,6 +39,9 @@ public class Config {
     public static final String KEY_COMPANY_ID = "company_id";
     public static final String KEY_COMPANY_NAME = "company_name";
     public static final String KEY_COMPANY_CODE = "company_code";
+    public static final String KEY_COMPANY_OWNER_USER_ID = "company_owner_user_id";
+    public static final String KEY_IS_COMPANY_OWNER = "is_company_owner";
+
 
     // Subscription Settings
     public static final String KEY_SUB_STATUS = "subscription_status";

@@ -98,6 +98,43 @@ public class PrinterManager {
             writeText("Inv  : " + invoiceNo + "\n");
             writeText("Tgl  : " + date + "\n");
 
+            // Cashier/Creator info
+            String cashierName = "";
+            if (sale.has("user") && !sale.get("user").isJsonNull()) {
+                JsonObject userObj = sale.getAsJsonObject("user");
+                if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                    cashierName = userObj.get("name").getAsString();
+                }
+            } else if (sale.has("created_by_user") && !sale.get("created_by_user").isJsonNull()) {
+                JsonObject userObj = sale.getAsJsonObject("created_by_user");
+                if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                    cashierName = userObj.get("name").getAsString();
+                }
+            } else if (sale.has("cashier") && !sale.get("cashier").isJsonNull()) {
+                com.google.gson.JsonElement cashierEl = sale.get("cashier");
+                if (cashierEl.isJsonObject()) {
+                    JsonObject cashierObj = cashierEl.getAsJsonObject();
+                    if (cashierObj.has("name") && !cashierObj.get("name").isJsonNull()) {
+                        cashierName = cashierObj.get("name").getAsString();
+                    }
+                } else {
+                    cashierName = cashierEl.getAsString();
+                }
+            } else if (sale.has("created_by") && !sale.get("created_by").isJsonNull()) {
+                com.google.gson.JsonElement cbEl = sale.get("created_by");
+                if (cbEl.isJsonObject()) {
+                    JsonObject cbObj = cbEl.getAsJsonObject();
+                    if (cbObj.has("name") && !cbObj.get("name").isJsonNull()) {
+                        cashierName = cbObj.get("name").getAsString();
+                    }
+                } else {
+                    cashierName = cbEl.getAsString();
+                }
+            }
+            if (!cashierName.isEmpty()) {
+                writeText("Kasir: " + cashierName + "\n");
+            }
+
             // Customer info
             if (sale.has("customer") && !sale.get("customer").isJsonNull()) {
                 JsonObject customer = sale.getAsJsonObject("customer");

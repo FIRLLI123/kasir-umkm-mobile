@@ -105,6 +105,8 @@ public class SessionManager {
         editor.remove(Config.KEY_COMPANY_ID);
         editor.remove(Config.KEY_COMPANY_NAME);
         editor.remove(Config.KEY_COMPANY_CODE);
+        editor.remove(Config.KEY_COMPANY_OWNER_USER_ID);
+        editor.remove(Config.KEY_IS_COMPANY_OWNER);
         editor.remove(Config.KEY_SUB_STATUS);
         editor.remove(Config.KEY_SUB_IS_ACTIVE);
         editor.remove(Config.KEY_SUB_IS_LIFETIME);
@@ -205,13 +207,52 @@ public class SessionManager {
     }
 
     /**
-     * Save active company details
+     * Save active company details with owner info
      */
-    public void saveCompany(int id, String name, String code) {
+    public void saveCompany(int id, String name, String code, int ownerUserId) {
         editor.putInt(Config.KEY_COMPANY_ID, id);
         editor.putString(Config.KEY_COMPANY_NAME, name);
         editor.putString(Config.KEY_COMPANY_CODE, code);
+        editor.putInt(Config.KEY_COMPANY_OWNER_USER_ID, ownerUserId);
         editor.apply();
+    }
+
+    /**
+     * Save active company details (overload for compatibility)
+     */
+    public void saveCompany(int id, String name, String code) {
+        saveCompany(id, name, code, 0);
+    }
+
+    /**
+     * Get active company Owner User ID
+     */
+    public int getCompanyOwnerUserId() {
+        return prefs.getInt(Config.KEY_COMPANY_OWNER_USER_ID, 0);
+    }
+
+    /**
+     * Save explicit is_owner flag from backend response.
+     * More reliable than ID comparison — backend confirms ownership directly.
+     */
+    public void saveIsOwner(boolean isOwner) {
+        editor.putBoolean(Config.KEY_IS_COMPANY_OWNER, isOwner);
+        editor.apply();
+    }
+
+    /**
+     * Check if current user is the company owner.
+     * Priority: explicit is_owner flag from backend > ID comparison fallback.
+     */
+    public boolean isCompanyOwner() {
+        // 1. Prefer the explicit flag sent directly by the backend (most reliable)
+        if (prefs.contains(Config.KEY_IS_COMPANY_OWNER)) {
+            return prefs.getBoolean(Config.KEY_IS_COMPANY_OWNER, false);
+        }
+        // 2. Fallback: compare stored user ID with stored owner ID
+        int userId = getUserId();
+        int ownerId = getCompanyOwnerUserId();
+        return userId > 0 && ownerId > 0 && userId == ownerId;
     }
 
     /**

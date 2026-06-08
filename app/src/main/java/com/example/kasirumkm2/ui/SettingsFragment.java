@@ -61,6 +61,9 @@ public class SettingsFragment extends Fragment {
         super.onResume();
         if (binding != null && sessionManager != null) {
             updateSubscriptionBadge();
+            // Re-evaluate owner status on every resume in case the background
+            // profile sync in MainActivity just updated the owner_user_id.
+            setupUserMenuVisibility();
         }
     }
 
@@ -125,19 +128,7 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupListeners() {
-        // Toggle Company & User Management visibility for SUPER_ADMIN
-        String role = sessionManager.getUserRole();
-        if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
-            binding.layoutOptionCompany.setVisibility(View.VISIBLE);
-            binding.dividerCompany.setVisibility(View.VISIBLE);
-            binding.layoutOptionUser.setVisibility(View.VISIBLE);
-            binding.dividerUser.setVisibility(View.VISIBLE);
-        } else {
-            binding.layoutOptionCompany.setVisibility(View.GONE);
-            binding.dividerCompany.setVisibility(View.GONE);
-            binding.layoutOptionUser.setVisibility(View.GONE);
-            binding.dividerUser.setVisibility(View.GONE);
-        }
+        setupUserMenuVisibility();
 
         binding.layoutOptionProfile.setOnClickListener(v -> {
             startActivity(new Intent(requireContext(), ProfileActivity.class));
@@ -174,6 +165,47 @@ public class SettingsFragment extends Fragment {
         binding.layoutOptionInfo.setOnClickListener(v -> showAppInfo());
 
         binding.btnLogout.setOnClickListener(v -> confirmLogout());
+    }
+
+    /**
+     * Evaluates the current user's owner/admin status and shows or hides the
+     * Company and User-Management menu items accordingly.
+     * Safe to call multiple times (e.g. from onResume after background sync).
+     */
+    private void setupUserMenuVisibility() {
+        if (binding == null || sessionManager == null) return;
+
+        String role = sessionManager.getUserRole();
+        boolean isSuperAdmin = "SUPER_ADMIN".equalsIgnoreCase(role);
+        boolean isOwner = sessionManager.isCompanyOwner();
+
+        // Debug: log the stored IDs so we can diagnose mismatch in testing
+        int storedUserId = sessionManager.getUserId();
+        int storedOwnerId = sessionManager.getCompanyOwnerUserId();
+        android.util.Log.d("SettingsFragment",
+                "[owner-check] userId=" + storedUserId +
+                " ownerUserId=" + storedOwnerId +
+                " role=" + role +
+                " isOwner=" + isOwner);
+
+        if (isSuperAdmin) {
+            binding.layoutOptionCompany.setVisibility(View.VISIBLE);
+            binding.dividerCompany.setVisibility(View.VISIBLE);
+            binding.layoutOptionUser.setVisibility(View.VISIBLE);
+            binding.dividerUser.setVisibility(View.VISIBLE);
+            binding.tvOptionUserText.setText("Manajemen Pengguna / User");
+        } else if (isOwner) {
+            binding.layoutOptionCompany.setVisibility(View.GONE);
+            binding.dividerCompany.setVisibility(View.GONE);
+            binding.layoutOptionUser.setVisibility(View.VISIBLE);
+            binding.dividerUser.setVisibility(View.VISIBLE);
+            binding.tvOptionUserText.setText("Kelola Karyawan");
+        } else {
+            binding.layoutOptionCompany.setVisibility(View.GONE);
+            binding.dividerCompany.setVisibility(View.GONE);
+            binding.layoutOptionUser.setVisibility(View.GONE);
+            binding.dividerUser.setVisibility(View.GONE);
+        }
     }
 
     private void showAppInfo() {

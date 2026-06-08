@@ -130,7 +130,13 @@ public class LoginActivity extends AppCompatActivity {
                             int compId = comp.get("id").getAsInt();
                             String compName = comp.get("company_name").getAsString();
                             String compCode = comp.get("company_code").getAsString();
-                            sessionManager.saveCompany(compId, compName, compCode);
+                            int ownerUserId = comp.has("owner_user_id") && !comp.get("owner_user_id").isJsonNull() ? comp.get("owner_user_id").getAsInt() : 0;
+                            sessionManager.saveCompany(compId, compName, compCode, ownerUserId);
+                        }
+
+                        // Save explicit is_owner flag from backend (most reliable check)
+                        if (data.has("is_owner") && !data.get("is_owner").isJsonNull()) {
+                            sessionManager.saveIsOwner(data.get("is_owner").getAsBoolean());
                         }
 
                         // Save subscription details if available in response

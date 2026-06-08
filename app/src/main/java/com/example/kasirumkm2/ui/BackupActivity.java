@@ -47,7 +47,7 @@ public class BackupActivity extends AppCompatActivity {
     private final Gson gson = new Gson();
     
     private static final int PERMISSION_REQUEST_CODE = 1002;
-    private int pendingExportType = -1; // 1: Sales, 2: Products, 3: Customers
+    private int pendingExportType = -1; // 1: Sales, 2: Products, 3: Customers, 4: SalesSummary, 5: Margin, 6: TopProducts
     private int userGroupId = 1; // Default customer group ID for user pricing
 
     @Override
@@ -71,6 +71,9 @@ public class BackupActivity extends AppCompatActivity {
         binding.btnExportSales.setOnClickListener(v -> handleExportClick(1));
         binding.btnExportProducts.setOnClickListener(v -> handleExportClick(2));
         binding.btnExportCustomers.setOnClickListener(v -> handleExportClick(3));
+        binding.btnExportSalesSummary.setOnClickListener(v -> handleExportClick(4));
+        binding.btnExportMargin.setOnClickListener(v -> handleExportClick(5));
+        binding.btnExportTopProducts.setOnClickListener(v -> handleExportClick(6));
     }
 
     private void handleExportClick(int exportType) {
@@ -145,6 +148,15 @@ public class BackupActivity extends AppCompatActivity {
                 break;
             case 3:
                 exportCustomers();
+                break;
+            case 4:
+                exportSalesSummary();
+                break;
+            case 5:
+                exportMarginReport();
+                break;
+            case 6:
+                exportTopProducts();
                 break;
         }
     }
@@ -283,6 +295,135 @@ public class BackupActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         e.printStackTrace();
                         showErrorDialog("Format data customer tidak valid.");
+                    }
+                } else if (response.code() == 401) {
+                    handleUnauthorized();
+                } else {
+                    showErrorDialog(getString(R.string.terjadi_kesalahan));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                setProgress(false, "");
+                showErrorDialog(getString(R.string.tidak_ada_koneksi));
+            }
+        });
+    }
+
+    // ─── ANALYTIC REPORT EXPORTS ────────────────────────────────────────────────
+
+    private void exportSalesSummary() {
+        setProgress(true, getString(R.string.export_loading_summary));
+
+        Map<String, String> params = new HashMap<>();
+        params.put("per_page", "all");
+
+        apiService.getSalesFiltered(params).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                setProgress(false, "");
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray dataArray = extractDataArray(response.body());
+                        if (dataArray == null || dataArray.size() == 0) {
+                            Toast.makeText(BackupActivity.this, "Tidak ada data transaksi untuk direkapitulasi.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String csvContent = CsvExportHelper.generateSalesSummaryCsv(dataArray);
+                        String fileName = generateFileName("rekapan_penjualan");
+                        saveAndShowResult(csvContent, fileName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showErrorDialog("Format data tidak valid.");
+                    }
+                } else if (response.code() == 401) {
+                    handleUnauthorized();
+                } else {
+                    showErrorDialog(getString(R.string.terjadi_kesalahan));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                setProgress(false, "");
+                showErrorDialog(getString(R.string.tidak_ada_koneksi));
+            }
+        });
+    }
+
+    private void exportMarginReport() {
+        setProgress(true, getString(R.string.export_loading_margin));
+
+        // Need full sales WITH their detail items for margin calculation
+        Map<String, String> params = new HashMap<>();
+        params.put("per_page", "all");
+
+        apiService.getSalesFiltered(params).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                setProgress(false, "");
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray dataArray = extractDataArray(response.body());
+                        if (dataArray == null || dataArray.size() == 0) {
+                            Toast.makeText(BackupActivity.this, "Tidak ada data transaksi untuk analisis margin.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String csvContent = CsvExportHelper.generateMarginReportCsv(dataArray);
+                        String fileName = generateFileName("laporan_margin");
+                        saveAndShowResult(csvContent, fileName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showErrorDialog("Format data tidak valid.");
+                    }
+                } else if (response.code() == 401) {
+                    handleUnauthorized();
+                } else {
+                    showErrorDialog(getString(R.string.terjadi_kesalahan));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                setProgress(false, "");
+                showErrorDialog(getString(R.string.tidak_ada_koneksi));
+            }
+        });
+    }
+
+    private void exportTopProducts() {
+        setProgress(true, getString(R.string.export_loading_products));
+
+        // Use reports/products endpoint — it already provides qty_sold & total_sales per product
+        Map<String, String> params = new HashMap<>();
+        // No date filter → fetch all-time ranking
+        params.put("per_page", "all");
+
+        apiService.getReportProducts(params).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                setProgress(false, "");
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        // reports/products returns {"data": [...]}
+                        JsonArray dataArray;
+                        if (response.body().has("data") && response.body().get("data").isJsonArray()) {
+                            dataArray = response.body().getAsJsonArray("data");
+                        } else {
+                            dataArray = extractDataArray(response.body());
+                        }
+
+                        if (dataArray == null || dataArray.size() == 0) {
+                            Toast.makeText(BackupActivity.this, "Belum ada data produk terjual.", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        String csvContent = CsvExportHelper.generateProductSalesReportCsv(dataArray);
+                        String fileName = generateFileName("ranking_produk");
+                        saveAndShowResult(csvContent, fileName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showErrorDialog("Format data tidak valid.");
                     }
                 } else if (response.code() == 401) {
                     handleUnauthorized();

@@ -191,6 +191,17 @@
     <string name="export_failed">Ekspor data gagal</string>
     <string name="export_unauthorized">Sesi berakhir, silakan login ulang</string>
 
+    <!-- Laporan Analitik Export -->
+    <string name="report_sales_summary_title">Rekapan Penjualan Harian</string>
+    <string name="report_sales_summary_desc">Omzet, modal, laba kotor, dan margin per hari — format laporan kasir profesional.</string>
+    <string name="report_margin_title">Laporan Margin &amp; Profitabilitas</string>
+    <string name="report_margin_desc">Analisis margin laba tiap produk: harga modal, harga jual, dan persentase profit.</string>
+    <string name="report_top_products_title">Ranking Produk Terlaris</string>
+    <string name="report_top_products_desc">Daftar produk diurutkan berdasarkan qty terjual dan total omzet tertinggi.</string>
+    <string name="export_loading_summary">Memuat data rekapan dari server...</string>
+    <string name="export_loading_margin">Mengunduh data penjualan untuk analisis margin...</string>
+    <string name="export_loading_products">Mengunduh ranking produk terlaris...</string>
+
     <!-- Register & Subscription -->
     <string name="lbl_no_account">Belum punya akun?</string>
     <string name="btn_register_now">Daftar</string>

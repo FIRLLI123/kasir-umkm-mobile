@@ -1,66 +1,57 @@
-# PRD Singkat - Fitur Chatbot AI Mobile
+# PRD Singkat - Void Transaksi untuk Mobile
 
 ## 1. Overview
 
-Mobile app akan memiliki fitur chatbot AI yang terhubung ke backend Laravel.
+Fitur void transaksi sudah tersedia di backend dan wajib dipakai oleh mobile jika user ingin membatalkan transaksi yang sudah berhasil dibuat.
 
-Mobile tidak boleh memanggil provider AI secara langsung.
+Behavior backend saat void:
 
-Arsitektur yang dipakai:
-
-```text
-Mobile App -> Backend Laravel -> Groq API
-```
-
-Keuntungan:
-
-* API key aman di backend
-* respons bisa dikontrol oleh backend
-* company user login tetap terisolasi
-* prompt dan behavior chatbot bisa disesuaikan tanpa update mobile
+* hanya transaksi dengan status `00` yang bisa di-void
+* status header transaksi berubah menjadi `98`
+* status detail transaksi berubah menjadi `98`
+* alasan void disimpan
+* user yang melakukan void disimpan
+* waktu void disimpan
+* stok barang otomatis kembali sesuai qty item transaksi
+* mutasi stok `VOID` dibuat otomatis
 
 ---
 
 ## 2. Tujuan
 
-Fitur chatbot AI dipakai untuk:
+Tim mobile harus mengimplementasikan flow void transaksi yang:
 
-* membantu user memahami aplikasi
-* menjawab pertanyaan umum tentang kasir
-* memberi bantuan ringan terkait stok, penjualan, laporan, dan penggunaan aplikasi
-* menampilkan informasi pembuat aplikasi jika ditanya user
+* aman
+* jelas untuk user
+* sinkron dengan backend
+* otomatis refresh data transaksi dan stok setelah void berhasil
 
 ---
 
-## 3. Scope V1
+## 3. Status Transaksi
 
-### Included
+### Status di backend
 
-* chat text-based
-* riwayat percakapan dikirim dari mobile ke backend
-* response teks dari AI
-* prompt dasar aplikasi kasir
-* info pembuat aplikasi jika ditanya user
+* `00` = sukses
+* `98` = void
+* `99` = nonaktif
 
-### Not Included
+### Rule penting
 
-* voice input/output
-* upload file/gambar
-* akses langsung AI ke database
-* function calling
-* streaming response
-* memory permanen lintas sesi
+Hanya transaksi dengan status `00` yang boleh di-void.
+
+Jika transaksi sudah `98`, backend akan menolak request void ulang.
 
 ---
 
 ## 4. Endpoint
 
-## POST `/api/ai/chat`
+## POST `/api/sales/{id}/void`
 
 Authentication:
 
-* wajib login Sanctum
-* gunakan Bearer Token
+* wajib login
+* wajib Bearer Token
 
 Headers:
 
@@ -74,94 +65,52 @@ Content-Type: application/json
 
 ## 5. Request Body
 
-### Minimal
-
 ```json
 {
-  "message": "Halo, kamu bisa bantu apa?"
+  "void_reason": "Customer batal beli"
 }
 ```
 
-### Full Payload
+### Field
 
-```json
-{
-  "message": "Bagaimana cara membaca laporan penjualan harian?",
-  "history": [
-    {
-      "role": "user",
-      "content": "Saya baru belajar aplikasi ini"
-    },
-    {
-      "role": "assistant",
-      "content": "Baik, saya bisa bantu jelaskan fitur-fiturnya"
-    }
-  ],
-  "system_prompt": "Kamu adalah asisten training kasir. Jawab singkat dan jelas.",
-  "temperature": 0.3
-}
-```
-
----
-
-## 6. Field Request
-
-### `message`
+#### `void_reason`
 
 * type: string
 * required
-* max: 5000 karakter
-
-### `history`
-
-* type: array
-* optional
-* max: 20 item
-
-Format item:
-
-```json
-{
-  "role": "user|assistant",
-  "content": "isi pesan"
-}
-```
-
-### `system_prompt`
-
-* type: string
-* optional
-* dipakai jika mobile ingin menyesuaikan gaya jawaban
-
-### `temperature`
-
-* type: number
-* optional
-* range: 0 - 2
+* dipakai untuk audit alasan pembatalan transaksi
 
 ---
 
-## 7. Response Success
+## 6. Response Success
 
 ```json
 {
   "success": true,
-  "message": "Chat AI berhasil diproses",
+  "message": "Transaksi berhasil di-void",
   "data": {
-    "reply": "Laporan penjualan harian menampilkan total transaksi, penjualan bersih, modal, dan margin pada hari tertentu.",
-    "model": "llama-3.3-70b-versatile",
-    "usage": {
-      "prompt_tokens": 100,
-      "completion_tokens": 40,
-      "total_tokens": 140
-    }
+    "id": 1,
+    "company_id": 1,
+    "invoice_no": "INV-20260604-0001",
+    "status": "98",
+    "void_reason": "Customer batal beli",
+    "void_by": 1,
+    "void_at": "2026-06-04T10:20:00.000000Z",
+    "details": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "product_name_snapshot": "Aqua 600ml",
+        "qty": "2.00",
+        "status": "98"
+      }
+    ]
   }
 }
 ```
 
 ---
 
-## 8. Response Error
+## 7. Response Error
 
 ### Belum login
 
@@ -173,134 +122,204 @@ Format item:
 }
 ```
 
-### Message kosong
+### Alasan void kosong
 
 ```json
 {
   "success": false,
-  "message": "Pesan wajib diisi.",
+  "message": "Alasan void wajib diisi.",
   "data": null,
   "errors": {
-    "message": [
-      "Pesan wajib diisi."
+    "void_reason": [
+      "Alasan void wajib diisi."
     ]
   }
 }
 ```
 
-### API key backend belum diset
+### Transaksi tidak ditemukan
 
 ```json
 {
   "success": false,
-  "message": "GROQ_API_KEY belum diset di backend.",
+  "message": "Transaksi penjualan tidak ditemukan.",
   "data": null
 }
 ```
 
-### Provider AI gagal
+### Transaksi bukan status sukses
 
 ```json
 {
   "success": false,
-  "message": "Gagal menghubungi layanan AI.",
+  "message": "Hanya transaksi sukses yang bisa di-void",
   "data": null
 }
 ```
 
----
+Catatan:
 
-## 9. Behavior Chatbot Saat Ini
+Jika user berasal dari company A dan mencoba void transaksi company B, backend juga akan menolak karena data terisolasi per `company_id`.
 
-Prompt default backend sudah diarahkan agar:
+Mobile cukup tampilkan pesan:
 
-* memahami konteks aplikasi kasir UMKM
-* menjawab singkat, jelas, dan relevan
-* tahu company user yang sedang login
-* bisa menjelaskan aplikasi ini jika ditanya
-* menyebut pembuat aplikasi adalah Programmer Firlli bila diminta
-* mengarahkan ke:
-  * Portfolio: `https://firlli.vercel.app/`
-  * WhatsApp: `082249495858`
+```text
+Transaksi penjualan tidak ditemukan.
+```
 
 ---
 
-## 10. Aturan Mobile
+## 8. Multi Company Behavior
 
-Mobile harus:
+Backend sudah memakai isolasi `company_id`.
 
-* mengirim `message`
-* boleh mengirim `history`
-* menyimpan riwayat chat di sisi mobile untuk sesi aktif
-* tidak mengirim API key provider AI
-* tidak memanggil Groq langsung dari mobile
+Artinya:
 
-Mobile tidak perlu:
+* user hanya bisa void transaksi milik company sendiri
+* user tidak bisa melihat atau mengubah transaksi company lain
+* stok yang dikembalikan juga hanya memengaruhi produk milik company yang sama
 
-* mengirim `company_id`
-* mengirim `user_id`
-* menghitung token usage
+Mobile tidak perlu mengirim `company_id`.
+
+Backend otomatis menentukan company dari user login.
 
 ---
 
-## 11. UX Recommendation
+## 9. Dampak Void ke Stok
 
-### Halaman Chat
+Saat void berhasil:
 
-Tampilkan:
+* qty produk dikembalikan ke stok
+* histori mutasi stok akan bertambah dengan tipe `VOID`
 
-* bubble chat user
-* bubble chat AI
-* loading state saat AI sedang berpikir
-* error toast/dialog jika request gagal
+Contoh:
 
-### Empty State
+Transaksi menjual:
 
-Contoh quick prompt:
+* Aqua 2 pcs
 
-* "Jelaskan fitur aplikasi ini"
-* "Bagaimana cara input penjualan?"
-* "Bagaimana cara melihat laporan?"
-* "Bagaimana cara cek stok?"
+Saat transaksi sukses:
 
-### Retry
+* stok berkurang 2
 
-Jika gagal request:
+Saat transaksi di-void:
 
-* tampilkan tombol kirim ulang
-* jangan hilangkan pesan user terakhir
+* stok bertambah kembali 2
 
 ---
 
-## 12. Acceptance Criteria
+## 10. Flow UI yang Disarankan
 
-Fitur chatbot mobile dianggap sesuai jika:
+### Dari halaman detail transaksi
 
-1. Mobile berhasil memanggil `POST /api/ai/chat`
-2. Token login dipakai di request chatbot
-3. User bisa kirim pesan teks
-4. AI mengembalikan jawaban teks
-5. Riwayat chat bisa dikirim ulang ke backend
-6. Error backend bisa ditampilkan dengan jelas
-7. Mobile tidak pernah menyimpan atau memakai API key Groq
+1. user tap tombol `Void`
+2. mobile tampilkan dialog konfirmasi
+3. user wajib isi alasan void
+4. mobile kirim request ke backend
+5. jika sukses:
+   * tampilkan notifikasi sukses
+   * ubah status transaksi jadi `VOID`
+   * refresh detail transaksi
+   * refresh list transaksi jika perlu
+   * refresh stok jika halaman stok terbuka / relevan
+
+### Contoh dialog
+
+Judul:
+
+```text
+Void Transaksi
+```
+
+Isi:
+
+```text
+Yakin ingin membatalkan transaksi ini?
+```
+
+Field:
+
+```text
+Alasan void
+```
 
 ---
 
-## 13. Rekomendasi Implementasi Mobile
+## 11. UX Rules
 
-1. Buat model request dan response `ai/chat`
-2. Tambahkan repository/service API chat
-3. Tambahkan halaman chat sederhana
-4. Simpan history sementara di memori lokal aplikasi
-5. Tambahkan loading, retry, dan error state
-6. Tambahkan quick actions / pertanyaan cepat
+### Tombol Void hanya tampil jika
+
+* status transaksi = `00`
+
+### Tombol Void disembunyikan atau disabled jika
+
+* status transaksi = `98`
+
+### Setelah void berhasil
+
+Tampilkan label status yang jelas, misalnya:
+
+```text
+VOID
+```
+
+dan tampilkan:
+
+* alasan void
+* siapa yang void
+* waktu void
 
 ---
 
-## 14. Konsep Pengembangan Lanjutan
+## 12. Refresh Data Setelah Void
 
-Versi saat ini masih general assistant.
+Minimal mobile melakukan refresh ke endpoint berikut:
 
-Ke depan chatbot bisa dibuat lebih kontekstual terhadap data kasir per company dengan pendekatan backend yang aman, dijelaskan di dokumen:
+* `GET /api/sales/{id}`
 
-`Konsep Chatbot AI Kontekstual.md`
+Jika ada modul stok/laporan terbuka, disarankan refresh juga:
+
+* `GET /api/stocks`
+* `GET /api/stocks/{productId}/history`
+* `GET /api/reports/daily`
+
+---
+
+## 13. Acceptance Criteria
+
+Implementasi mobile dianggap sesuai jika:
+
+1. User hanya bisa void transaksi status `00`
+2. User wajib mengisi alasan void
+3. Mobile memanggil `POST /api/sales/{id}/void`
+4. Status transaksi berubah menjadi `98` setelah sukses
+5. Detail transaksi ikut menampilkan status void
+6. Mobile menampilkan pesan error backend dengan jelas
+7. Data transaksi company lain tidak bisa di-void
+8. Stok dianggap kembali setelah void sukses
+
+---
+
+## 14. Catatan untuk QA
+
+Skenario test minimum:
+
+1. Buat transaksi sukses
+2. Void transaksi tersebut
+3. Cek status transaksi berubah jadi `98`
+4. Cek alasan void tampil
+5. Cek stok produk kembali
+6. Coba void ulang transaksi yang sama
+7. Pastikan backend menolak
+
+---
+
+## 15. Kesimpulan
+
+Flow void transaksi di backend saat ini:
+
+* sudah aktif
+* sudah mengembalikan stok
+* sudah aman untuk multi-company
+
+Tim mobile tinggal mengikuti endpoint dan flow di atas tanpa perlu logika `company_id` manual.

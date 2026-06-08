@@ -28,6 +28,7 @@ public class UserFormActivity extends AppCompatActivity {
 
     private ActivityUserFormBinding binding;
     private ApiService apiService;
+    private com.example.kasirumkm2.session.SessionManager sessionManager;
 
     private boolean isEditMode = false;
     private int userId = -1;
@@ -43,6 +44,7 @@ public class UserFormActivity extends AppCompatActivity {
         binding = ActivityUserFormBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        sessionManager = new com.example.kasirumkm2.session.SessionManager(this);
         apiService = ApiClient.getApiService(this);
 
         // Check if edit mode
@@ -52,16 +54,37 @@ public class UserFormActivity extends AppCompatActivity {
 
         setupToolbar();
         setupListeners();
-        loadCompaniesList(userJson);
+
+        if (sessionManager.isCompanyOwner()) {
+            binding.tilCompany.setVisibility(View.GONE);
+            binding.rbSuperAdmin.setVisibility(View.GONE);
+            if (isEditMode) {
+                loadUserData(userJson);
+            }
+        } else {
+            loadCompaniesList(userJson);
+        }
 
         if (isEditMode) {
             binding.tvTitle.setText("Edit Pengguna");
-            binding.btnDelete.setVisibility(View.VISIBLE);
+            if (userId == sessionManager.getUserId()) {
+                binding.btnDelete.setVisibility(View.GONE);
+                binding.cardStatus.setVisibility(View.GONE);
+            } else {
+                binding.btnDelete.setVisibility(View.VISIBLE);
+                binding.cardStatus.setVisibility(View.VISIBLE);
+            }
+            if (userId == sessionManager.getCompanyOwnerUserId()) {
+                binding.rbKasir.setEnabled(false);
+                binding.rbAdmin.setEnabled(false);
+                binding.rbSuperAdmin.setEnabled(false);
+            }
             // tilPassword helper text for optional
             binding.tilPassword.setHelperText("Kosongkan jika tidak ingin mengubah password");
         } else {
             binding.tvTitle.setText("Tambah Pengguna");
             binding.btnDelete.setVisibility(View.GONE);
+            binding.cardStatus.setVisibility(View.VISIBLE);
         }
     }
 
@@ -210,11 +233,13 @@ public class UserFormActivity extends AppCompatActivity {
             binding.tilPassword.setError(null);
         }
 
-        if (selectedCompanyId <= 0) {
-            binding.tilCompany.setError("Silakan pilih company");
-            isValid = false;
-        } else {
-            binding.tilCompany.setError(null);
+        if (!sessionManager.isCompanyOwner()) {
+            if (selectedCompanyId <= 0) {
+                binding.tilCompany.setError("Silakan pilih company");
+                isValid = false;
+            } else {
+                binding.tilCompany.setError(null);
+            }
         }
 
         if (!isValid) return;
@@ -227,7 +252,9 @@ public class UserFormActivity extends AppCompatActivity {
         }
         body.addProperty("phone", TextUtils.isEmpty(phone) ? null : phone);
         body.addProperty("role", role);
-        body.addProperty("company_id", selectedCompanyId);
+        if (!sessionManager.isCompanyOwner()) {
+            body.addProperty("company_id", selectedCompanyId);
+        }
         body.addProperty("status", status);
 
         setLoading(true);

@@ -152,14 +152,45 @@ public class MainActivity extends AppCompatActivity {
                         JsonObject body = response.body();
                         sessionManager.updateAiChatLimit(body);
                         JsonObject data = body.getAsJsonObject("data");
+
+                        // === DEBUG: log exact structure received ===
+                        android.util.Log.d("MainActivity", "[profile-raw] data keys: " + data.keySet().toString());
+
                         if (data.has("company") && !data.get("company").isJsonNull()) {
                             JsonObject comp = data.getAsJsonObject("company");
+
+                            // === DEBUG: log exact company JSON ===
+                            android.util.Log.d("MainActivity", "[profile-company] " + comp.toString());
+
                             int compId = comp.get("id").getAsInt();
                             String compName = comp.get("company_name").getAsString();
                             String compCode = comp.get("company_code").getAsString();
-                            sessionManager.saveCompany(compId, compName, compCode);
+                            int ownerUserId = comp.has("owner_user_id") && !comp.get("owner_user_id").isJsonNull()
+                                    ? comp.get("owner_user_id").getAsInt() : 0;
+
+                            android.util.Log.d("MainActivity",
+                                    "[profile-parsed] compId=" + compId +
+                                    " ownerUserId=" + ownerUserId +
+                                    " myUserId=" + sessionManager.getUserId());
+
+                            sessionManager.saveCompany(compId, compName, compCode, ownerUserId);
                         }
-                    } catch (Exception ignored) {}
+
+                        // Save explicit is_owner flag — works regardless of ownerUserId parsing
+                        if (data.has("is_owner") && !data.get("is_owner").isJsonNull()) {
+                            boolean isOwner = data.get("is_owner").getAsBoolean();
+                            android.util.Log.d("MainActivity", "[profile-is_owner] " + isOwner);
+                            sessionManager.saveIsOwner(isOwner);
+                            notifySettingsFragmentToRefresh();
+                        } else {
+                            // is_owner not in response, fall back to ID-based check
+                            fetchCompanyOwnerFallback();
+                        }
+
+                    } catch (Exception e) {
+                        android.util.Log.e("MainActivity", "[profile-parse-error] " + e.getMessage());
+                        fetchCompanyOwnerFallback();
+                    }
                 }
 
                 // Then fetch active subscription
@@ -180,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
                                     updateSubscriptionBanner();
-                                    
+
                                     // Also refresh HomeFragment if it's currently loaded to sync cards
                                     Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
                                     if (currentFragment instanceof HomeFragment) {
@@ -203,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 // If profile fails, still try to fetch active subscription
+                fetchCompanyOwnerFallback();
                 apiService.getSubscriptionActive().enqueue(new Callback<JsonObject>() {
                     @Override
                     public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -220,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     sessionManager.saveSubscription(subStatus, subActive, subLifetime, trialEndsAt, endsAt);
                                     updateSubscriptionBanner();
-                                    
+
                                     // Also refresh HomeFragment if it's currently loaded to sync cards
                                     Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
                                     if (currentFragment instanceof HomeFragment) {
@@ -241,6 +273,85 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    /**
+     * Fallback: fetch /companies endpoint to get the correct owner_user_id.
+     * Called when the profile API doesn't include owner_user_id in the company object.
+     * The /companies endpoint returns the full DB row including owner_user_id.
+     */
+    private void fetchCompanyOwnerFallback() {
+        int currentUserId = sessionManager.getUserId();
+        if (currentUserId <= 0) return;
+
+        apiService.getCompanies().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject body = response.body();
+                        // Response can be {"data": [...]} or {"data": {"data": [...]}}
+                        com.google.gson.JsonArray companies = null;
+                        if (body.has("data")) {
+                            if (body.get("data").isJsonArray()) {
+                                companies = body.getAsJsonArray("data");
+                            } else if (body.get("data").isJsonObject()) {
+                                JsonObject dataObj = body.getAsJsonObject("data");
+                                if (dataObj.has("data") && dataObj.get("data").isJsonArray()) {
+                                    companies = dataObj.getAsJsonArray("data");
+                                }
+                            }
+                        }
+
+                        if (companies == null) return;
+
+                        // Find the company that belongs to the current user's company_id
+                        int savedCompanyId = sessionManager.getCompanyId();
+                        for (int i = 0; i < companies.size(); i++) {
+                            JsonObject comp = companies.get(i).getAsJsonObject();
+                            int compId = comp.has("id") ? comp.get("id").getAsInt() : 0;
+
+                            // Match by company ID (already saved) or check owner
+                            int ownerUserId = comp.has("owner_user_id") && !comp.get("owner_user_id").isJsonNull()
+                                    ? comp.get("owner_user_id").getAsInt() : 0;
+
+                            if (compId == savedCompanyId || ownerUserId == currentUserId) {
+                                String compName = comp.has("company_name") ? comp.get("company_name").getAsString() : sessionManager.getCompanyName();
+                                String compCode = comp.has("company_code") ? comp.get("company_code").getAsString() : sessionManager.getCompanyCode();
+
+                                android.util.Log.d("MainActivity",
+                                        "[owner-fallback] companyId=" + compId +
+                                        " ownerUserId=" + ownerUserId +
+                                        " currentUserId=" + currentUserId);
+
+                                sessionManager.saveCompany(compId, compName, compCode, ownerUserId);
+                                notifySettingsFragmentToRefresh();
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.e("MainActivity", "[owner-fallback] error: " + e.getMessage());
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                android.util.Log.e("MainActivity", "[owner-fallback] failed: " + t.getMessage());
+            }
+        });
+    }
+
+    /**
+     * If SettingsFragment is currently visible, tell it to re-evaluate
+     * the owner menu visibility now that the session data is updated.
+     */
+    private void notifySettingsFragmentToRefresh() {
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+        if (current instanceof com.example.kasirumkm2.ui.SettingsFragment) {
+            current.onResume();
+        }
+    }
+
 
     private boolean checkExpiredAndBlock() {
         if (sessionManager.isSubscriptionExpired()) {

@@ -93,6 +93,184 @@ public class CsvExportHelper {
     }
 
     /**
+     * Generates a daily sales summary CSV (Rekapan Penjualan Harian).
+     * Columns: Tanggal, Jumlah Transaksi, Omzet, Modal, Laba Kotor, Margin (%)
+     */
+    public static String generateSalesSummaryCsv(JsonArray dataArray) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('\ufeff');
+        sb.append("Tanggal,Jumlah Transaksi,Omzet (Rp),Modal (Rp),Laba Kotor (Rp),Margin (%)\n");
+
+        // Group by date
+        java.util.LinkedHashMap<String, double[]> byDate = new java.util.LinkedHashMap<>();
+        // Each value: [count, omzet, modal, margin]
+
+        for (int i = 0; i < dataArray.size(); i++) {
+            try {
+                JsonObject sale = dataArray.get(i).getAsJsonObject();
+                String status = sale.has("status") ? sale.get("status").getAsString() : "00";
+                if (!"00".equals(status)) continue; // skip voided
+
+                String rawDate = sale.has("created_at") ? sale.get("created_at").getAsString() : "";
+                String dateKey = rawDate.length() >= 10 ? rawDate.substring(0, 10) : rawDate;
+
+                double omzet = sale.has("grand_total") ? sale.get("grand_total").getAsDouble() : 0;
+                double modal = sale.has("total_modal") ? sale.get("total_modal").getAsDouble() : 0;
+                double laba = sale.has("total_margin") ? sale.get("total_margin").getAsDouble() :
+                              (omzet - modal);
+
+                double[] entry = byDate.getOrDefault(dateKey, new double[]{0, 0, 0, 0});
+                entry[0]++;
+                entry[1] += omzet;
+                entry[2] += modal;
+                entry[3] += laba;
+                byDate.put(dateKey, entry);
+            } catch (Exception ignored) {}
+        }
+
+        for (java.util.Map.Entry<String, double[]> entry : byDate.entrySet()) {
+            double[] v = entry.getValue();
+            double marginPct = v[1] > 0 ? (v[3] / v[1]) * 100 : 0;
+            sb.append(escapeCsvField(entry.getKey())).append(",")
+              .append(escapeCsvField(String.valueOf((int) v[0]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[1]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[2]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[3]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.1f", marginPct))).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Generates a per-product margin report CSV.
+     * Iterates through all sales detail items.
+     * Columns: Nama Produk, Total Qty Terjual, Total Omzet, Total Modal, Laba Kotor, Margin (%)
+     */
+    public static String generateMarginReportCsv(JsonArray salesArray) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('\ufeff');
+        sb.append("Nama Produk,Kode Produk,Total Qty Terjual,Harga Modal (Rp),Harga Jual (Rp),Total Omzet (Rp),Total Modal (Rp),Laba Kotor (Rp),Margin (%)\n");
+
+        // Map: productName -> [qty, hargaModal, hargaJual, omzet, modal, laba]
+        java.util.LinkedHashMap<String, double[]> byProduct = new java.util.LinkedHashMap<>();
+        java.util.LinkedHashMap<String, String> productCodes = new java.util.LinkedHashMap<>();
+
+        for (int i = 0; i < salesArray.size(); i++) {
+            try {
+                JsonObject sale = salesArray.get(i).getAsJsonObject();
+                String status = sale.has("status") ? sale.get("status").getAsString() : "00";
+                if (!"00".equals(status)) continue;
+
+                // Try to get items from details / items key
+                JsonArray items = null;
+                if (sale.has("details") && sale.get("details").isJsonArray()) {
+                    items = sale.getAsJsonArray("details");
+                } else if (sale.has("items") && sale.get("items").isJsonArray()) {
+                    items = sale.getAsJsonArray("items");
+                }
+                if (items == null) continue;
+
+                for (int j = 0; j < items.size(); j++) {
+                    JsonObject item = items.get(j).getAsJsonObject();
+                    String productName = "-";
+                    String productCode = "-";
+
+                    if (item.has("product") && !item.get("product").isJsonNull()) {
+                        JsonObject prod = item.getAsJsonObject("product");
+                        productName = prod.has("product_name") ? prod.get("product_name").getAsString() : "-";
+                        productCode = prod.has("product_code") ? prod.get("product_code").getAsString() : "-";
+                    } else {
+                        productName = item.has("product_name") ? item.get("product_name").getAsString() : "-";
+                    }
+
+                    double qty = item.has("qty") ? item.get("qty").getAsDouble() : 0;
+                    double hargaModal = item.has("cost_price") ? item.get("cost_price").getAsDouble() :
+                                       (item.has("modal_price") ? item.get("modal_price").getAsDouble() : 0);
+                    double hargaJual = item.has("unit_price") ? item.get("unit_price").getAsDouble() :
+                                      (item.has("selling_price") ? item.get("selling_price").getAsDouble() : 0);
+                    double totalOmzet = item.has("subtotal") ? item.get("subtotal").getAsDouble() : (hargaJual * qty);
+                    double totalModal = hargaModal * qty;
+                    double laba = totalOmzet - totalModal;
+
+                    double[] entry = byProduct.getOrDefault(productName, new double[]{0, 0, 0, 0, 0, 0});
+                    entry[0] += qty;        // total qty
+                    entry[1] = hargaModal;  // unit modal (take latest)
+                    entry[2] = hargaJual;   // unit jual (take latest)
+                    entry[3] += totalOmzet; // cumulative omzet
+                    entry[4] += totalModal; // cumulative modal
+                    entry[5] += laba;       // cumulative laba
+                    byProduct.put(productName, entry);
+                    productCodes.put(productName, productCode);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        for (java.util.Map.Entry<String, double[]> entry : byProduct.entrySet()) {
+            double[] v = entry.getValue();
+            double marginPct = v[3] > 0 ? (v[5] / v[3]) * 100 : 0;
+            String code = productCodes.getOrDefault(entry.getKey(), "-");
+            sb.append(escapeCsvField(entry.getKey())).append(",")
+              .append(escapeCsvField(code)).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[0]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[1]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[2]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[3]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[4]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[5]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.1f", marginPct))).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Generates a product sales ranking report CSV.
+     * Sorted by total omzet descending.
+     * Columns: Ranking, Nama Produk, Total Qty Terjual, Total Omzet (Rp)
+     */
+    public static String generateProductSalesReportCsv(JsonArray dataArray) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('\ufeff');
+        sb.append("Ranking,Nama Produk,Total Qty Terjual,Total Omzet (Rp)\n");
+
+        java.util.LinkedHashMap<String, double[]> byProduct = new java.util.LinkedHashMap<>();
+
+        for (int i = 0; i < dataArray.size(); i++) {
+            try {
+                JsonObject item = dataArray.get(i).getAsJsonObject();
+                String name = item.has("product_name") ? item.get("product_name").getAsString() : "-";
+                double qty = 0, omzet = 0;
+
+                if (item.has("qty_sold")) {
+                    try { qty = item.get("qty_sold").getAsDouble(); } catch (Exception e) { qty = 0; }
+                }
+                if (item.has("total_sales")) {
+                    try { omzet = item.get("total_sales").getAsDouble(); } catch (Exception e) { omzet = 0; }
+                }
+
+                double[] entry = byProduct.getOrDefault(name, new double[]{0, 0});
+                entry[0] += qty;
+                entry[1] += omzet;
+                byProduct.put(name, entry);
+            } catch (Exception ignored) {}
+        }
+
+        // Sort by omzet descending
+        java.util.List<java.util.Map.Entry<String, double[]>> sorted =
+            new java.util.ArrayList<>(byProduct.entrySet());
+        sorted.sort((a, b) -> Double.compare(b.getValue()[1], a.getValue()[1]));
+
+        int rank = 1;
+        for (java.util.Map.Entry<String, double[]> entry : sorted) {
+            double[] v = entry.getValue();
+            sb.append(escapeCsvField(String.valueOf(rank++))).append(",")
+              .append(escapeCsvField(entry.getKey())).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[0]))).append(",")
+              .append(escapeCsvField(String.format(java.util.Locale.getDefault(), "%.0f", v[1]))).append("\n");
+        }
+        return sb.toString();
+    }
+
+    /**
      * Converts products list into CSV string
      */
     public static String generateProductsCsv(List<Product> products, int userGroupId) {

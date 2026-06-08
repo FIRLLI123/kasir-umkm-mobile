@@ -66,6 +66,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         private final TextView tvEmail;
         private final TextView tvCompany;
         private final TextView tvStatus;
+        private final TextView tvPhone;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -75,6 +76,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             tvEmail = itemView.findViewById(R.id.tvUserEmail);
             tvCompany = itemView.findViewById(R.id.tvUserCompany);
             tvStatus = itemView.findViewById(R.id.tvUserStatus);
+            tvPhone = itemView.findViewById(R.id.tvUserPhone);
 
             itemView.setOnClickListener(v -> {
                 int pos = getAdapterPosition();
@@ -113,14 +115,28 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             }
 
             // Bind Company Name
-            String companyName = "-";
-            if (user.has("company") && !user.get("company").isJsonNull()) {
-                JsonObject comp = user.getAsJsonObject("company");
-                if (comp.has("company_name") && !comp.get("company_name").isJsonNull()) {
-                    companyName = comp.get("company_name").getAsString();
+            com.example.kasirumkm2.session.SessionManager session = new com.example.kasirumkm2.session.SessionManager(context);
+            if (session.isCompanyOwner()) {
+                tvCompany.setVisibility(View.GONE);
+            } else {
+                tvCompany.setVisibility(View.VISIBLE);
+                String companyName = "-";
+                if (user.has("company") && !user.get("company").isJsonNull()) {
+                    JsonObject comp = user.getAsJsonObject("company");
+                    if (comp.has("company_name") && !comp.get("company_name").isJsonNull()) {
+                        companyName = comp.get("company_name").getAsString();
+                    }
                 }
+                tvCompany.setText("🏢 Toko: " + companyName);
             }
-            tvCompany.setText("🏢 Toko: " + companyName);
+
+            // Bind Phone
+            String phone = user.has("phone") && !user.get("phone").isJsonNull() ? user.get("phone").getAsString() : "";
+            if (phone.isEmpty()) {
+                tvPhone.setText("📞 No HP: -");
+            } else {
+                tvPhone.setText("📞 No HP: " + phone);
+            }
 
             // Bind Status
             String status = user.has("status") && !user.get("status").isJsonNull() ? user.get("status").getAsString() : "00";
