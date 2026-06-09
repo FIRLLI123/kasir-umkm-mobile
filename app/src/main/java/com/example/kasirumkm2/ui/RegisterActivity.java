@@ -26,6 +26,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ActivityRegisterBinding binding;
     private SessionManager sessionManager;
     private ApiService apiService;
+    private String currentCaptchaKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,11 +38,13 @@ public class RegisterActivity extends AppCompatActivity {
         apiService = ApiClient.getApiService(this);
 
         setupListeners();
+        loadCaptcha();
     }
 
     private void setupListeners() {
         binding.btnRegister.setOnClickListener(v -> attemptRegister());
         binding.tvLoginLink.setOnClickListener(v -> finish());
+        binding.btnRefreshCaptcha.setOnClickListener(v -> loadCaptcha());
 
         // Clear errors on focus
         binding.etCompanyName.setOnFocusChangeListener((v, hasFocus) -> {
@@ -64,6 +67,9 @@ public class RegisterActivity extends AppCompatActivity {
         });
         binding.etPasswordConfirmation.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) binding.tilPasswordConfirmation.setError(null);
+        });
+        binding.etCaptcha.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.tilCaptcha.setError(null);
         });
     }
 
@@ -120,6 +126,13 @@ public class RegisterActivity extends AppCompatActivity {
             valid = false;
         }
 
+        String captchaValue = binding.etCaptcha.getText().toString().trim();
+        if (TextUtils.isEmpty(captchaValue)) {
+            binding.tilCaptcha.setError("Kode captcha harus diisi");
+            shakeView(binding.tilCaptcha);
+            valid = false;
+        }
+
         if (!valid) return;
 
         setLoading(true);
@@ -133,7 +146,9 @@ public class RegisterActivity extends AppCompatActivity {
                 phone,
                 address,
                 sessionManager.getDeviceId(),
-                sessionManager.getDeviceName()
+                sessionManager.getDeviceName(),
+                currentCaptchaKey,
+                captchaValue
         );
 
         apiService.register(registerRequest).enqueue(new Callback<JsonObject>() {
@@ -197,6 +212,7 @@ public class RegisterActivity extends AppCompatActivity {
                         navigateToMain();
                     } catch (Exception e) {
                         CurrencyHelper.showError(binding.getRoot(), "Registrasi gagal: " + e.getMessage());
+                        loadCaptcha();
                     }
                 } else {
                     String errorMsg = getString(R.string.register_failed);
@@ -213,6 +229,7 @@ public class RegisterActivity extends AppCompatActivity {
                         // ignore
                     }
                     CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    loadCaptcha();
                 }
             }
 
@@ -220,6 +237,41 @@ public class RegisterActivity extends AppCompatActivity {
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
                 CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+                loadCaptcha();
+            }
+        });
+    }
+
+    private void loadCaptcha() {
+        binding.progressBar.setVisibility(View.VISIBLE);
+        apiService.getCaptcha().enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonObject data = response.body().getAsJsonObject("data");
+                        currentCaptchaKey = data.get("captcha_key").getAsString();
+                        String base64Image = data.get("captcha_image").getAsString();
+                        if (base64Image.contains(",")) {
+                            base64Image = base64Image.split(",")[1];
+                        }
+                        byte[] decodedString = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
+                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        binding.ivCaptcha.setImageBitmap(bitmap);
+                        binding.etCaptcha.setText("");
+                    } catch (Exception e) {
+                        android.widget.Toast.makeText(RegisterActivity.this, "Gagal memproses captcha", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    android.widget.Toast.makeText(RegisterActivity.this, "Gagal memuat captcha", android.widget.Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                android.widget.Toast.makeText(RegisterActivity.this, "Gagal menghubungi server untuk captcha", android.widget.Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -235,6 +287,8 @@ public class RegisterActivity extends AppCompatActivity {
         binding.etAddress.setEnabled(!loading);
         binding.etPassword.setEnabled(!loading);
         binding.etPasswordConfirmation.setEnabled(!loading);
+        binding.btnRefreshCaptcha.setEnabled(!loading);
+        binding.etCaptcha.setEnabled(!loading);
     }
 
     private void shakeView(View view) {

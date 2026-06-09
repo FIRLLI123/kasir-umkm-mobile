@@ -16,11 +16,11 @@
         android:paddingStart="@dimen/page_margin"
         android:paddingEnd="@dimen/page_margin">
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btnBack"
             android:layout_width="@dimen/touch_target_min"
             android:layout_height="@dimen/touch_target_min"
-            android:src="@android:drawable/ic_menu_revert"
+            app:srcCompat="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/cd_close"
             app:tint="@color/text_dark" />
@@ -35,11 +35,11 @@
             android:textStyle="bold"
             android:layout_marginStart="@dimen/spacing_sm" />
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btnClearCart"
             android:layout_width="@dimen/touch_target_min"
             android:layout_height="@dimen/touch_target_min"
-            android:src="@android:drawable/ic_menu_delete"
+            app:srcCompat="@android:drawable/ic_menu_delete"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Reset Keranjang"
             app:tint="@color/danger_red" />
@@ -113,33 +113,51 @@
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Search Bar -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilSearch"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:layout_marginStart="@dimen/page_margin"
         android:layout_marginEnd="@dimen/page_margin"
-        android:layout_marginBottom="@dimen/spacing_md"
-        app:boxCornerRadiusTopStart="@dimen/input_radius"
-        app:boxCornerRadiusTopEnd="@dimen/input_radius"
-        app:boxCornerRadiusBottomStart="@dimen/input_radius"
-        app:boxCornerRadiusBottomEnd="@dimen/input_radius"
-        app:boxStrokeColor="@color/primary"
-        app:hintTextColor="@color/text_gray"
-        app:startIconDrawable="@android:drawable/ic_menu_search"
-        app:startIconTint="@color/text_light">
+        android:layout_marginBottom="@dimen/spacing_md">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etSearch"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/input_height"
-            android:hint="Cari produk di kasir..."
-            android:textSize="@dimen/text_body_large"
-            android:inputType="text"
-            android:imeOptions="actionSearch"
-            android:textColor="@color/text_dark" />
-    </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilSearch"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:boxCornerRadiusTopStart="@dimen/input_radius"
+            app:boxCornerRadiusTopEnd="@dimen/input_radius"
+            app:boxCornerRadiusBottomStart="@dimen/input_radius"
+            app:boxCornerRadiusBottomEnd="@dimen/input_radius"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/text_gray"
+            app:startIconDrawable="@android:drawable/ic_menu_search"
+            app:startIconTint="@color/text_light">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSearch"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/input_height"
+                android:hint="Cari produk di kasir..."
+                android:textSize="@dimen/text_body_large"
+                android:inputType="text"
+                android:imeOptions="actionSearch"
+                android:textColor="@color/text_dark" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnScanBarcode"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:layout_marginStart="8dp"
+            app:srcCompat="@drawable/ic_barcode_scan"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Scan Barcode"
+            app:tint="@color/primary" />
+    </LinearLayout>
 
     <!-- Products Content -->
     <FrameLayout

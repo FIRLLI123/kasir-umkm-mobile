@@ -40,6 +40,9 @@ public interface ApiService {
     @POST("register")
     Call<JsonObject> register(@Body RegisterRequest registerRequest);
 
+    @GET("captcha")
+    Call<JsonObject> getCaptcha();
+
     @GET("subscription/active")
     Call<JsonObject> getSubscriptionActive();
 

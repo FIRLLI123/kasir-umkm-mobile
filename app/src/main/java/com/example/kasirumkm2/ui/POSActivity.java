@@ -210,6 +210,7 @@ public class POSActivity extends AppCompatActivity {
         });
 
         binding.btnQuickAdd.setOnClickListener(v -> showQuickAddDialog());
+        binding.btnScanBarcode.setOnClickListener(v -> startBarcodeScan());
     }
 
     private void showQuickAddDialog() {
@@ -463,6 +464,16 @@ public class POSActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        
+        com.google.zxing.integration.android.IntentResult scanResult = com.google.zxing.integration.android.IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if (scanResult != null) {
+            if (scanResult.getContents() != null) {
+                String barcode = scanResult.getContents().trim();
+                handleBarcodeScanned(barcode);
+            }
+            return;
+        }
+
         if (requestCode == REQUEST_CHOOSE_CUSTOMER && resultCode == RESULT_OK && data != null) {
             selectedCustomerId = data.getIntExtra("customer_id", 0);
             selectedCustomerName = data.getStringExtra("customer_name");
@@ -511,6 +522,134 @@ public class POSActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void startBarcodeScan() {
+        com.google.zxing.integration.android.IntentIntegrator integrator = new com.google.zxing.integration.android.IntentIntegrator(this);
+        integrator.setCaptureActivity(PortraitCaptureActivity.class);
+        integrator.setOrientationLocked(true);
+        integrator.setPrompt("Scan barcode produk");
+        integrator.setBeepEnabled(true);
+        integrator.initiateScan();
+    }
+
+    private void handleBarcodeScanned(String barcode) {
+        if (barcode == null || barcode.isEmpty()) return;
+
+        // 1. Search locally in productList
+        Product foundLocalProduct = null;
+        for (Product p : productList) {
+            if (isBarcodeMatch(barcode, p.getProductCode())) {
+                foundLocalProduct = p;
+                break;
+            }
+        }
+
+        if (foundLocalProduct != null) {
+            addOrIncrementInCart(foundLocalProduct);
+            return;
+        }
+
+        // 2. Query from backend API
+        binding.progressBar.setVisibility(View.VISIBLE);
+        Map<String, String> params = new HashMap<>();
+        params.put("page", "1");
+        params.put("per_page", "10");
+        params.put("search", barcode);
+
+        apiService.getProductsFiltered(params).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                binding.progressBar.setVisibility(View.GONE);
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        JsonArray dataArray = extractDataArray(response.body());
+                        if (dataArray.size() > 0) {
+                            Product scannedProduct = null;
+                            // Prefer exact match by code
+                            for (int i = 0; i < dataArray.size(); i++) {
+                                Product p = gson.fromJson(dataArray.get(i), Product.class);
+                                if (isBarcodeMatch(barcode, p.getProductCode())) {
+                                    scannedProduct = p;
+                                    break;
+                                }
+                            }
+                            // Fallback to the first search match
+                            if (scannedProduct == null) {
+                                scannedProduct = gson.fromJson(dataArray.get(0), Product.class);
+                            }
+
+                            if (scannedProduct != null) {
+                                // Add to our productList list if not already there
+                                boolean exists = false;
+                                for (Product p : productList) {
+                                    if (p.getId() == scannedProduct.getId()) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (!exists) {
+                                    productList.add(0, scannedProduct);
+                                    adapter.setData(productList);
+                                    toggleEmptyState(productList.isEmpty());
+                                }
+
+                                addOrIncrementInCart(scannedProduct);
+                            }
+                        } else {
+                            CurrencyHelper.showError(binding.getRoot(), "Produk dengan barcode \"" + barcode + "\" tidak ditemukan");
+                        }
+                    } catch (Exception e) {
+                        CurrencyHelper.showError(binding.getRoot(), "Format data produk tidak valid");
+                    }
+                } else {
+                    CurrencyHelper.showError(binding.getRoot(), "Gagal mencari produk");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                binding.progressBar.setVisibility(View.GONE);
+                CurrencyHelper.showError(binding.getRoot(), "Koneksi internet bermasalah");
+            }
+        });
+    }
+
+    private void addOrIncrementInCart(Product product) {
+        // Double check stock
+        if (product.getStock() <= 0) {
+            CurrencyHelper.showError(binding.getRoot(), "Stok produk \"" + product.getProductName() + "\" habis");
+            return;
+        }
+
+        boolean alreadyInCart = false;
+        for (CartItem item : cartList) {
+            if (item.getProduct().getId() == product.getId()) {
+                if (item.getQty() < product.getStock()) {
+                    item.incrementQty();
+                    CurrencyHelper.showToast(this, product.getProductName() + " ditambahkan (Qty: " + item.getQty() + ")");
+                } else {
+                    CurrencyHelper.showError(binding.getRoot(), "Jumlah pesanan \"" + product.getProductName() + "\" melebihi stok");
+                }
+                alreadyInCart = true;
+                break;
+            }
+        }
+
+        if (!alreadyInCart) {
+            double price = product.getSellingPrice(selectedCustomerGroupId);
+            CartItem item = new CartItem(product, 1, price);
+            cartList.add(item);
+            CurrencyHelper.showToast(this, product.getProductName() + " ditambahkan ke keranjang");
+        }
+
+        adapter.setCartState(cartList, selectedCustomerGroupId);
+        updateCheckoutPanel();
+    }
+
+    private boolean isBarcodeMatch(String barcode, String productCode) {
+        if (barcode == null || productCode == null) return false;
+        return barcode.trim().equalsIgnoreCase(productCode.trim());
     }
 
     @Override

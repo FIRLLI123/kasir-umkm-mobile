@@ -177,6 +177,79 @@
                 android:textColor="@color/text_dark" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Captcha Container -->
+        <LinearLayout
+            android:id="@+id/layoutCaptcha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="@dimen/spacing_lg">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Keamanan (Captcha)"
+                android:textColor="@color/text_gray"
+                android:textSize="@dimen/text_body_large"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/spacing_xs" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_sm">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    app:cardCornerRadius="@dimen/card_radius"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_light"
+                    app:strokeWidth="1dp"
+                    app:cardBackgroundColor="@color/white">
+
+                    <ImageView
+                        android:id="@+id/ivCaptcha"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitCenter" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRefreshCaptcha"
+                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="@dimen/spacing_xs"
+                    app:icon="@android:drawable/stat_notify_sync"
+                    app:iconSize="24dp"
+                    app:iconTint="@color/primary"
+                    android:padding="0dp"
+                    app:iconPadding="0dp" />
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCaptcha"
+                style="@style/Widget.KasirUmkm.TextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
+                app:startIconTint="@color/text_gray">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCaptcha"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:hint="Masukkan Kode Captcha"
+                    android:inputType="textCapCharacters|textNoSuggestions"
+                    android:textSize="@dimen/text_body_large"
+                    android:textColor="@color/text_dark" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
         <!-- Register Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegister"

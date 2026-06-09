@@ -30,7 +30,13 @@ public class RegisterRequest {
     @SerializedName("device_name")
     private String deviceName;
 
-    public RegisterRequest(String companyName, String name, String email, String password, String passwordConfirmation, String phone, String address, String deviceId, String deviceName) {
+    @SerializedName("captcha_key")
+    private String captchaKey;
+
+    @SerializedName("captcha_value")
+    private String captchaValue;
+
+    public RegisterRequest(String companyName, String name, String email, String password, String passwordConfirmation, String phone, String address, String deviceId, String deviceName, String captchaKey, String captchaValue) {
         this.companyName = companyName;
         this.name = name;
         this.email = email;
@@ -40,6 +46,8 @@ public class RegisterRequest {
         this.address = address;
         this.deviceId = deviceId;
         this.deviceName = deviceName;
+        this.captchaKey = captchaKey;
+        this.captchaValue = captchaValue;
     }
 
     // Getters
@@ -52,4 +60,6 @@ public class RegisterRequest {
     public String getAddress() { return address; }
     public String getDeviceId() { return deviceId; }
     public String getDeviceName() { return deviceName; }
+    public String getCaptchaKey() { return captchaKey; }
+    public String getCaptchaValue() { return captchaValue; }
 }

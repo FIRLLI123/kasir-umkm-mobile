@@ -1,9 +1,19 @@
 package com.example.kasirumkm2.ui;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -39,6 +49,18 @@ public class ProductFormActivity extends AppCompatActivity {
     private int userGroupId = 1;
     private int freelancerGroupId = 2;
     private int grosirGroupId = 3;
+
+    private static final int PERMISSION_REQUEST_CAMERA = 101;
+
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
+            new ScanContract(),
+            result -> {
+                if (result.getContents() != null) {
+                    binding.etCode.setText(result.getContents());
+                    binding.tilCode.setError(null);
+                }
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +152,44 @@ public class ProductFormActivity extends AppCompatActivity {
         binding.etPriceUser.addTextChangedListener(new NumberTextWatcher(binding.etPriceUser));
         binding.etPriceFreelancer.addTextChangedListener(new NumberTextWatcher(binding.etPriceFreelancer));
         binding.etPriceGrosir.addTextChangedListener(new NumberTextWatcher(binding.etPriceGrosir));
+        binding.tilCode.setEndIconOnClickListener(v -> checkCameraPermissionAndScan());
+    }
+
+    private void checkCameraPermissionAndScan() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            startScan();
+        } else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.CAMERA},
+                    PERMISSION_REQUEST_CAMERA
+            );
+        }
+    }
+
+    private void startScan() {
+        ScanOptions options = new ScanOptions();
+        options.setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES);
+        options.setPrompt("Scan Barcode");
+        options.setCameraId(0);
+        options.setBeepEnabled(true);
+        options.setBarcodeImageEnabled(false);
+        options.setCaptureActivity(PortraitCaptureActivity.class);
+        options.setOrientationLocked(true);
+        barcodeLauncher.launch(options);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startScan();
+            } else {
+                android.widget.Toast.makeText(this, "Izin kamera dibutuhkan untuk scan barcode", android.widget.Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void loadProductData() {

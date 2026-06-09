@@ -140,6 +140,8 @@ public class ProductBulkActivity extends AppCompatActivity {
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(false);
+        options.setCaptureActivity(PortraitCaptureActivity.class);
+        options.setOrientationLocked(true);
         barcodeLauncher.launch(options);
     }
 

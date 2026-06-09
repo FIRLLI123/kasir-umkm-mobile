@@ -65,7 +65,11 @@
                 style="@style/Widget.KasirUmkm.TextInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_md">
+                android:layout_marginBottom="@dimen/spacing_md"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_barcode_scan"
+                app:endIconTint="@color/primary"
+                app:endIconContentDescription="Scan Barcode">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etCode"
                     android:layout_width="match_parent"

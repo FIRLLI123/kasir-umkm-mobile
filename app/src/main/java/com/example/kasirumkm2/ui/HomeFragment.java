@@ -365,6 +365,7 @@ public class HomeFragment extends Fragment {
         TextView tvDate = view.findViewById(R.id.tvSheetDate);
         TextView tvCustomer = view.findViewById(R.id.tvSheetCustomer);
         TextView tvPayment = view.findViewById(R.id.tvSheetPayment);
+        TextView tvCashier = view.findViewById(R.id.tvSheetCashier);
         TextView tvSubtotal = view.findViewById(R.id.tvSheetSubtotal);
         TextView tvDiscount = view.findViewById(R.id.tvSheetDiscount);
         TextView tvGrandTotal = view.findViewById(R.id.tvSheetGrandTotal);
@@ -406,6 +407,45 @@ public class HomeFragment extends Fragment {
             tvPayment.setText("Pembayaran: -");
         }
 
+        // Cashier/Creator info
+        String cashierName = "";
+        if (saleHeader.has("user") && !saleHeader.get("user").isJsonNull()) {
+            JsonObject userObj = saleHeader.getAsJsonObject("user");
+            if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                cashierName = userObj.get("name").getAsString();
+            }
+        } else if (saleHeader.has("created_by_user") && !saleHeader.get("created_by_user").isJsonNull()) {
+            JsonObject userObj = saleHeader.getAsJsonObject("created_by_user");
+            if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                cashierName = userObj.get("name").getAsString();
+            }
+        } else if (saleHeader.has("cashier") && !saleHeader.get("cashier").isJsonNull()) {
+            com.google.gson.JsonElement cashierEl = saleHeader.get("cashier");
+            if (cashierEl.isJsonObject()) {
+                JsonObject cashierObj = cashierEl.getAsJsonObject();
+                if (cashierObj.has("name") && !cashierObj.get("name").isJsonNull()) {
+                    cashierName = cashierObj.get("name").getAsString();
+                }
+            } else {
+                cashierName = cashierEl.getAsString();
+            }
+        } else if (saleHeader.has("created_by") && !saleHeader.get("created_by").isJsonNull()) {
+            com.google.gson.JsonElement cbEl = saleHeader.get("created_by");
+            if (cbEl.isJsonObject()) {
+                JsonObject cbObj = cbEl.getAsJsonObject();
+                if (cbObj.has("name") && !cbObj.get("name").isJsonNull()) {
+                    cashierName = cbObj.get("name").getAsString();
+                }
+            } else {
+                cashierName = cbEl.getAsString();
+            }
+        }
+        if (!cashierName.isEmpty()) {
+            tvCashier.setText("Kasir: " + cashierName);
+        } else {
+            tvCashier.setText("Kasir: -");
+        }
+
         // Totals
         double grandTotal = saleHeader.has("grand_total") ? saleHeader.get("grand_total").getAsDouble() : 0;
         double discount = saleHeader.has("discount") ? saleHeader.get("discount").getAsDouble() : 0;
@@ -439,6 +479,44 @@ public class HomeFragment extends Fragment {
                     try {
                         JsonObject dataObj = response.body().getAsJsonObject("data");
                         fullSaleData[0] = dataObj;
+                        
+                        // Update cashier info from detailed data if available
+                        String detailedCashier = "";
+                        if (dataObj.has("user") && !dataObj.get("user").isJsonNull()) {
+                            JsonObject userObj = dataObj.getAsJsonObject("user");
+                            if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                                detailedCashier = userObj.get("name").getAsString();
+                            }
+                        } else if (dataObj.has("created_by_user") && !dataObj.get("created_by_user").isJsonNull()) {
+                            JsonObject userObj = dataObj.getAsJsonObject("created_by_user");
+                            if (userObj.has("name") && !userObj.get("name").isJsonNull()) {
+                                detailedCashier = userObj.get("name").getAsString();
+                            }
+                        } else if (dataObj.has("cashier") && !dataObj.get("cashier").isJsonNull()) {
+                            com.google.gson.JsonElement cashierEl = dataObj.get("cashier");
+                            if (cashierEl.isJsonObject()) {
+                                JsonObject cashierObj = cashierEl.getAsJsonObject();
+                                if (cashierObj.has("name") && !cashierObj.get("name").isJsonNull()) {
+                                    detailedCashier = cashierObj.get("name").getAsString();
+                                }
+                            } else {
+                                detailedCashier = cashierEl.getAsString();
+                            }
+                        } else if (dataObj.has("created_by") && !dataObj.get("created_by").isJsonNull()) {
+                            com.google.gson.JsonElement cbEl = dataObj.get("created_by");
+                            if (cbEl.isJsonObject()) {
+                                JsonObject cbObj = cbEl.getAsJsonObject();
+                                if (cbObj.has("name") && !cbObj.get("name").isJsonNull()) {
+                                    detailedCashier = cbObj.get("name").getAsString();
+                                }
+                            } else {
+                                detailedCashier = cbEl.getAsString();
+                            }
+                        }
+                        if (!detailedCashier.isEmpty()) {
+                            tvCashier.setText("Kasir: " + detailedCashier);
+                        }
+
                         if (dataObj.has("items")) {
                             JsonArray itemsArray = dataObj.getAsJsonArray("items");
                             layoutItems.removeAllViews();

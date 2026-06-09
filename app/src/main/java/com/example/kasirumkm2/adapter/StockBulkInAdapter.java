@@ -41,14 +41,20 @@ public class StockBulkInAdapter extends RecyclerView.Adapter<StockBulkInAdapter.
     private final List<Product> allProducts;
     private final List<String> productDisplayList = new ArrayList<>();
     private final OnDeleteListener deleteListener;
+    private final OnScanRequestedListener scanListener;
 
     public interface OnDeleteListener {
         void onDelete(int position);
     }
 
-    public StockBulkInAdapter(List<Product> allProducts, OnDeleteListener deleteListener) {
+    public interface OnScanRequestedListener {
+        void onScanRequested(int position);
+    }
+
+    public StockBulkInAdapter(List<Product> allProducts, OnDeleteListener deleteListener, OnScanRequestedListener scanListener) {
         this.allProducts = allProducts;
         this.deleteListener = deleteListener;
+        this.scanListener = scanListener;
 
         for (Product p : allProducts) {
             String code = p.getProductCode() != null && !p.getProductCode().isEmpty() ? p.getProductCode() : "-";
@@ -269,6 +275,14 @@ public class StockBulkInAdapter extends RecyclerView.Adapter<StockBulkInAdapter.
                 deleteListener.onDelete(currentPos);
             }
         });
+
+        // Scan Barcode Action
+        holder.btnScan.setOnClickListener(v -> {
+            int currentPos = holder.getAdapterPosition();
+            if (scanListener != null && currentPos != RecyclerView.NO_POSITION) {
+                scanListener.onScanRequested(currentPos);
+            }
+        });
     }
 
     @Override
@@ -294,6 +308,7 @@ public class StockBulkInAdapter extends RecyclerView.Adapter<StockBulkInAdapter.
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvRowNumber;
         ImageButton btnDelete;
+        com.google.android.material.button.MaterialButton btnScan;
         TextInputLayout tilProduct, tilCurrentStock, tilQtyAdd, tilFinalStock, tilNote;
         AutoCompleteTextView actvProduct;
         TextInputEditText etCurrentStock, etQtyAdd, etFinalStock, etNote;
@@ -304,6 +319,7 @@ public class StockBulkInAdapter extends RecyclerView.Adapter<StockBulkInAdapter.
             super(itemView);
             tvRowNumber = itemView.findViewById(R.id.tvRowNumber);
             btnDelete = itemView.findViewById(R.id.btnDelete);
+            btnScan = itemView.findViewById(R.id.btnScan);
             tilProduct = itemView.findViewById(R.id.tilProduct);
             tilCurrentStock = itemView.findViewById(R.id.tilCurrentStock);
             tilQtyAdd = itemView.findViewById(R.id.tilQtyAdd);

@@ -1,13 +1,22 @@
 package com.example.kasirumkm2.ui;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 
 import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.adapter.StockBulkInAdapter;
@@ -41,6 +50,18 @@ public class StockBulkInActivity extends AppCompatActivity {
     private StockBulkInAdapter adapter;
     private final List<Product> productList = new ArrayList<>();
     private final Gson gson = new Gson();
+    private int activeScanPosition = -1;
+    private static final int PERMISSION_REQUEST_CAMERA = 101;
+
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
+            new ScanContract(),
+            result -> {
+                if (result.getContents() != null && activeScanPosition >= 0) {
+                    handleScannedBarcode(activeScanPosition, result.getContents().trim());
+                }
+                activeScanPosition = -1;
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,13 +154,20 @@ public class StockBulkInActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        adapter = new StockBulkInAdapter(productList, position -> {
-            if (adapter.getItemCount() <= 1) {
-                CurrencyHelper.showError(binding.getRoot(), "Minimal harus ada 1 baris input");
-            } else {
-                adapter.removeRow(position);
-            }
-        });
+        adapter = new StockBulkInAdapter(
+                productList,
+                position -> {
+                    if (adapter.getItemCount() <= 1) {
+                        CurrencyHelper.showError(binding.getRoot(), "Minimal harus ada 1 baris input");
+                    } else {
+                        adapter.removeRow(position);
+                    }
+                },
+                position -> {
+                    activeScanPosition = position;
+                    checkCameraPermissionAndScan();
+                }
+        );
 
         binding.rvBulkList.setLayoutManager(new LinearLayoutManager(this));
         binding.rvBulkList.setAdapter(adapter);
@@ -329,5 +357,79 @@ public class StockBulkInActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void checkCameraPermissionAndScan() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            startScan();
+        } else {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.CAMERA},
+                    PERMISSION_REQUEST_CAMERA
+            );
+        }
+    }
+
+    private void startScan() {
+        ScanOptions options = new ScanOptions();
+        options.setDesiredBarcodeFormats(ScanOptions.ALL_CODE_TYPES);
+        options.setPrompt("Scan Barcode Produk");
+        options.setCameraId(0);
+        options.setBeepEnabled(true);
+        options.setBarcodeImageEnabled(false);
+        options.setCaptureActivity(PortraitCaptureActivity.class);
+        options.setOrientationLocked(true);
+        barcodeLauncher.launch(options);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CAMERA) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startScan();
+            } else {
+                Toast.makeText(this, "Izin kamera dibutuhkan untuk scan barcode", Toast.LENGTH_SHORT).show();
+                activeScanPosition = -1;
+            }
+        }
+    }
+
+    private void handleScannedBarcode(int position, String barcode) {
+        Product foundProduct = null;
+        for (Product p : productList) {
+            if (p.getProductCode() != null && barcode.equalsIgnoreCase(p.getProductCode().trim())) {
+                foundProduct = p;
+                break;
+            }
+        }
+
+        if (foundProduct != null) {
+            // Check if selected elsewhere
+            boolean duplicate = false;
+            List<StockBulkInAdapter.BulkStockItem> currentItems = adapter.getItems();
+            for (int i = 0; i < currentItems.size(); i++) {
+                if (i != position && currentItems.get(i).productId == foundProduct.getId()) {
+                    duplicate = true;
+                    break;
+                }
+            }
+
+            if (duplicate) {
+                CurrencyHelper.showError(binding.getRoot(), "Produk \"" + foundProduct.getProductName() + "\" sudah dipilih di baris lain");
+            } else {
+                StockBulkInAdapter.BulkStockItem item = currentItems.get(position);
+                item.productId = foundProduct.getId();
+                item.productName = foundProduct.getProductName();
+                item.productCode = foundProduct.getProductCode();
+                item.currentStock = foundProduct.getStock();
+                item.productError = null;
+                adapter.notifyItemChanged(position);
+            }
+        } else {
+            CurrencyHelper.showError(binding.getRoot(), "Produk dengan barcode \"" + barcode + "\" tidak ditemukan");
+        }
     }
 }

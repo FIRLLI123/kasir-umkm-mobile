@@ -132,6 +132,18 @@
                 android:maxLines="2"
                 android:ellipsize="end"
                 android:visibility="gone" />
+
+            <!-- Updater -->
+            <TextView
+                android:id="@+id/tvUpdater"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_light"
+                android:textSize="@dimen/text_label_small"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </LinearLayout>

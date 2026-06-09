@@ -99,6 +99,20 @@ public class StockMutationAdapter extends RecyclerView.Adapter<StockMutationAdap
             holder.tvNote.setVisibility(View.GONE);
         }
 
+        // Creator (Updater)
+        if (item.has("creator") && !item.get("creator").isJsonNull()) {
+            JsonObject creatorObj = item.getAsJsonObject("creator");
+            if (creatorObj.has("name") && !creatorObj.get("name").isJsonNull()) {
+                String creatorName = creatorObj.get("name").getAsString();
+                holder.tvUpdater.setVisibility(View.VISIBLE);
+                holder.tvUpdater.setText("👤 Oleh: " + creatorName);
+            } else {
+                holder.tvUpdater.setVisibility(View.GONE);
+            }
+        } else {
+            holder.tvUpdater.setVisibility(View.GONE);
+        }
+
         // Timeline lines visibility
         holder.viewLineTop.setVisibility(position == 0 ? View.INVISIBLE : View.VISIBLE);
         holder.viewLineBottom.setVisibility(position == mutations.size() - 1 ? View.INVISIBLE : View.VISIBLE);
@@ -185,7 +199,7 @@ public class StockMutationAdapter extends RecyclerView.Adapter<StockMutationAdap
 
     static class MutationViewHolder extends RecyclerView.ViewHolder {
         View viewLineTop, viewDot, viewLineBottom;
-        TextView tvMutationType, tvMutationDate, tvQtyDirection, tvStockFlow, tvNote;
+        TextView tvMutationType, tvMutationDate, tvQtyDirection, tvStockFlow, tvNote, tvUpdater;
 
         MutationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -197,6 +211,7 @@ public class StockMutationAdapter extends RecyclerView.Adapter<StockMutationAdap
             tvQtyDirection = itemView.findViewById(R.id.tvQtyDirection);
             tvStockFlow = itemView.findViewById(R.id.tvStockFlow);
             tvNote = itemView.findViewById(R.id.tvNote);
+            tvUpdater = itemView.findViewById(R.id.tvUpdater);
         }
     }
 }
