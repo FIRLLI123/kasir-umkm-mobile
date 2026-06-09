@@ -56,6 +56,12 @@
             android:exported="false"
             android:theme="@style/Theme.KasirUmkm2.Login" />
 
+        <!-- Onboarding Guide Tour -->
+        <activity
+            android:name=".ui.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.KasirUmkm2.Login" />
+
         <!-- Subscription Plan Selector -->
         <activity
             android:name=".ui.SubscriptionActivity"

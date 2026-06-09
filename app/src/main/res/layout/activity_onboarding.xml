@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    activity_onboarding.xml
+    Root layout: ViewPager2 full screen + bottom overlay (dots + buttons)
+    yang tidak ikut slide saat swipe.
+-->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- ViewPager2 — full screen, slides scroll here -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:overScrollMode="never" />
+
+    <!-- Bottom overlay — fixed, does NOT scroll with ViewPager -->
+    <LinearLayout
+        android:id="@+id/bottomOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp"
+        android:paddingBottom="32dp"
+        android:paddingTop="16dp"
+        android:background="@drawable/bg_onboard_bottom_fade">
+
+        <!-- Dot Indicator — custom row -->
+        <LinearLayout
+            android:id="@+id/dotsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="20dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/selector_dot" />
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/selector_dot" />
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/selector_dot" />
+
+            <View
+                android:id="@+id/dot4"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/selector_dot" />
+
+            <View
+                android:id="@+id/dot5"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:background="@drawable/selector_dot" />
+
+        </LinearLayout>
+
+        <!-- Primary Button (Next / Masuk) -->
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Yuk, kenalan sama Airin →"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_button_teal"
+            android:stateListAnimator="@null"
+            android:letterSpacing="0.01"
+            android:elevation="2dp" />
+
+        <!-- Secondary Button (Daftar — visible only on slide 4) -->
+        <Button
+            android:id="@+id/btnDaftar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="Daftar Akun Baru"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#0EA5A0"
+            android:background="@drawable/bg_button_outline"
+            android:stateListAnimator="@null"
+            android:visibility="gone"
+            android:elevation="0dp" />
+
+        <!-- Skip link — visible on slides 1-3 -->
+        <TextView
+            android:id="@+id/tvLewati"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="14dp"
+            android:text="Lewati"
+            android:textSize="13sp"
+            android:textColor="#94A3B8"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

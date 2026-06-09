@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gradient background slide 1: #E0F7F6 → #F0FDFA → #FFFFFF -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="270"
+        android:startColor="#E0F7F6"
+        android:centerColor="#F0FDFA"
+        android:endColor="#FFFFFF" />
+</shape>

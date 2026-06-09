@@ -3,6 +3,7 @@ package com.example.kasirumkm2.ui;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,6 +16,7 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import com.example.kasirumkm2.MainActivity;
 import com.example.kasirumkm2.databinding.ActivitySplashBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.ui.OnboardingActivity;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -181,16 +183,25 @@ public class SplashActivity extends AppCompatActivity {
 
     /**
      * Navigate to the next screen after SPLASH_DURATION ms.
-     * Checks session: goes to MainActivity if logged in, LoginActivity otherwise.
+     * Order: check onboarding first, then session status.
      */
     private void startDelayTimer() {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             Intent intent;
-            if (sessionManager.isLoggedIn()) {
+
+            // Check if user has seen onboarding
+            SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+            boolean onboardingDone = prefs.getBoolean("onboarding_completed", false);
+
+            if (!onboardingDone) {
+                // First time install — show onboarding
+                intent = new Intent(SplashActivity.this, OnboardingActivity.class);
+            } else if (sessionManager.isLoggedIn()) {
                 intent = new Intent(SplashActivity.this, MainActivity.class);
             } else {
                 intent = new Intent(SplashActivity.this, LoginActivity.class);
             }
+
             startActivity(intent);
             finish();
 
