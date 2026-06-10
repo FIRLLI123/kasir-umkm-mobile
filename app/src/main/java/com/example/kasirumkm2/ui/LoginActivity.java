@@ -15,7 +15,9 @@ import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.data.LoginRequest;
 import com.example.kasirumkm2.databinding.ActivityLoginBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+
 import com.google.gson.JsonObject;
 
 import retrofit2.Call;
@@ -159,10 +161,21 @@ public class LoginActivity extends AppCompatActivity {
                         // Reset API client to use new token
                         ApiClient.resetClient();
 
-                        // Navigate
-                        navigateToMain();
+                        // Dialog Yeay! sebelum navigate
+                        AirinDialog.showSuccess(
+                                LoginActivity.this,
+                                "Yeay, berhasil masuk! 🎉",
+                                "Halo lagi~ Airin senang kamu kembali! Yuk langsung mulai kasir hari ini! 😊",
+                                () -> navigateToMain()
+                        );
+
                     } catch (Exception e) {
-                        CurrencyHelper.showError(binding.getRoot(), "Login gagal: " + e.getMessage());
+                        AirinDialog.showError(
+                                LoginActivity.this,
+                                "Ups, ada yang aneh nih 😅",
+                                "Login gagal: " + e.getMessage() + "\nCoba lagi ya~",
+                                null
+                        );
                     }
                 } else {
                     // Handle error
@@ -179,15 +192,19 @@ public class LoginActivity extends AppCompatActivity {
                     } catch (Exception e) {
                         // ignore
                     }
-                    CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    AirinDialog.showError(
+                            LoginActivity.this,
+                            "Gagal Masuk 😢",
+                            errorMsg + "\nCoba cek email & password kamu ya~",
+                            null
+                    );
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(),
-                        getString(R.string.tidak_ada_koneksi));
+                AirinDialog.showOffline(LoginActivity.this, null);
             }
         });
     }

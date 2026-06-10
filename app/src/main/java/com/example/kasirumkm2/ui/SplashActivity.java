@@ -184,17 +184,23 @@ public class SplashActivity extends AppCompatActivity {
     /**
      * Navigate to the next screen after SPLASH_DURATION ms.
      * Order: check onboarding first, then session status.
+     *
+     * Uses version-based check: if ONBOARDING_VERSION changes, onboarding
+     * will be shown again even if previously completed.
      */
+    private static final int ONBOARDING_VERSION = 1; // bump this to force re-show onboarding
+
     private void startDelayTimer() {
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             Intent intent;
 
-            // Check if user has seen onboarding
+            // Version-based onboarding check
             SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
-            boolean onboardingDone = prefs.getBoolean("onboarding_completed", false);
+            int completedVersion = prefs.getInt("onboarding_version", -1);
+            boolean onboardingDone = (completedVersion >= ONBOARDING_VERSION);
 
             if (!onboardingDone) {
-                // First time install — show onboarding
+                // First time install or new onboarding version — show onboarding
                 intent = new Intent(SplashActivity.this, OnboardingActivity.class);
             } else if (sessionManager.isLoggedIn()) {
                 intent = new Intent(SplashActivity.this, MainActivity.class);

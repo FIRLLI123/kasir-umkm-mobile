@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    dialog_airin.xml
+    Layout dialog custom Airin.
+    Width diatur programmatically (90% layar) di AirinDialog.java.
+    clipChildren=false agar animasi floating tidak terpotong.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_dialog_airin"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingTop="16dp"
+    android:paddingBottom="28dp"
+    android:paddingLeft="28dp"
+    android:paddingRight="28dp">
+
+    <!-- Wrapper dengan extra space atas agar animasi bounce tidak terpotong -->
+    <FrameLayout
+        android:layout_width="150dp"
+        android:layout_height="170dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:layout_marginBottom="8dp">
+
+        <!-- Airin image — ada ruang 20dp di atas untuk bobbing ke atas -->
+        <ImageView
+            android:id="@+id/ivAirinDialog"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:scaleType="fitCenter"
+            android:contentDescription="Airin" />
+
+    </FrameLayout>
+
+    <!-- Title besar -->
+    <TextView
+        android:id="@+id/tvDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#1E293B"
+        android:lineSpacingMultiplier="1.2"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Pesan dari Airin -->
+    <TextView
+        android:id="@+id/tvDialogMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="#64748B"
+        android:lineSpacingMultiplier="1.6"
+        android:layout_marginBottom="28dp" />
+
+    <!-- Tombol OK -->
+    <Button
+        android:id="@+id/btnDialogOk"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:stateListAnimator="@null"
+        android:elevation="2dp" />
+
+</LinearLayout>

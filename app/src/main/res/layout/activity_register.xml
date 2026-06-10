@@ -1,302 +1,747 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<!--
+    activity_register.xml — Multi-step registration guided by Airin
+    3 Step: Data Toko | Akun | Captcha & Submit
+-->
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
-    android:background="@color/background_page">
+    android:background="#F8FAFC">
 
+    <!-- ─── Fixed Header ──────────────────────────────────────────────── -->
     <LinearLayout
+        android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/page_margin">
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
 
-        <!-- Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/register_title"
-            android:textColor="@color/text_dark"
-            android:textSize="@dimen/text_headline_medium"
-            android:textStyle="bold"
-            android:layout_marginTop="@dimen/spacing_lg"
-            android:layout_marginBottom="@dimen/spacing_xs" />
-
-        <!-- Tagline -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/register_tagline"
-            android:textColor="@color/text_gray"
-            android:textSize="@dimen/text_body_large"
-            android:layout_marginBottom="@dimen/spacing_xl" />
-
-        <!-- Company Name -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilCompanyName"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/ic_menu_myplaces"
-            app:startIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etCompanyName"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_company_name"
-                android:inputType="textCapWords"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Owner Name -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilName"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/ic_menu_myplaces"
-            app:startIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etName"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_name"
-                android:inputType="textPersonName|textCapWords"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Email -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilEmail"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/sym_action_email"
-            app:startIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_email"
-                android:inputType="textEmailAddress"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Phone / WhatsApp -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPhone"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/ic_menu_call"
-            app:startIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPhone"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_phone"
-                android:inputType="phone"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Address -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilAddress"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/ic_dialog_map"
-            app:startIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAddress"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_address"
-                android:inputType="textPostalAddress|textCapSentences"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Password -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_md"
-            app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-            app:startIconTint="@color/text_gray"
-            app:endIconMode="password_toggle"
-            app:endIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPassword"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_password"
-                android:inputType="textPassword"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Password Confirmation -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPasswordConfirmation"
-            style="@style/Widget.KasirUmkm.TextInputLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_xl"
-            app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-            app:startIconTint="@color/text_gray"
-            app:endIconMode="password_toggle"
-            app:endIconTint="@color/text_gray">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etPasswordConfirmation"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:hint="@string/hint_password_confirmation"
-                android:inputType="textPassword"
-                android:textSize="@dimen/text_body_large"
-                android:textColor="@color/text_dark" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Captcha Container -->
+        <!-- Back + Title row -->
         <LinearLayout
-            android:id="@+id/layoutCaptcha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/spacing_lg">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Keamanan (Captcha)"
-                android:textColor="@color/text_gray"
-                android:textSize="@dimen/text_body_large"
-                android:textStyle="bold"
-                android:layout_marginBottom="@dimen/spacing_xs" />
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_feature_chip"
+                android:src="@android:drawable/ic_media_previous"
+                android:scaleType="fitCenter"
+                android:padding="8dp"
+                android:contentDescription="Kembali" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_sm">
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
 
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
-                    app:cardCornerRadius="@dimen/card_radius"
-                    app:cardElevation="0dp"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp"
-                    app:cardBackgroundColor="@color/white">
+                <TextView
+                    android:id="@+id/tvStepTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Data Toko"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B" />
 
-                    <ImageView
-                        android:id="@+id/ivCaptcha"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="fitCenter" />
-                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/tvStepSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Langkah 1 dari 3"
+                    android:textSize="12sp"
+                    android:textColor="#94A3B8" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnRefreshCaptcha"
-                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="@dimen/spacing_xs"
-                    app:icon="@android:drawable/stat_notify_sync"
-                    app:iconSize="24dp"
-                    app:iconTint="@color/primary"
-                    android:padding="0dp"
-                    app:iconPadding="0dp" />
             </LinearLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilCaptcha"
-                style="@style/Widget.KasirUmkm.TextInputLayout"
-                android:layout_width="match_parent"
+            <!-- Step badge -->
+            <TextView
+                android:id="@+id/tvStepBadge"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
-                app:startIconTint="@color/text_gray">
+                android:text="1/3"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#0EA5A0"
+                android:background="@drawable/bg_feature_chip"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etCaptcha"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
-                    android:hint="Masukkan Kode Captcha"
-                    android:inputType="textCapCharacters|textNoSuggestions"
-                    android:textSize="@dimen/text_body_large"
-                    android:textColor="@color/text_dark" />
-            </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- Register Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRegister"
-            style="@style/Widget.KasirUmkm.Button.Primary"
+        <!-- Step Progress Bar -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_large"
-            android:text="@string/btn_register"
-            android:layout_marginBottom="@dimen/spacing_lg" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <!-- Progress Bar -->
+            <View
+                android:id="@+id/progressStep1"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_progress_active"
+                android:layerType="software" />
+
+            <View
+                android:id="@+id/progressStep2"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_progress_inactive"
+                android:layerType="software" />
+
+            <View
+                android:id="@+id/progressStep3"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="4dp"
+                android:background="@drawable/bg_progress_inactive"
+                android:layerType="software" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- ─── Scrollable Content ────────────────────────────────────────── -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="110dp"
+        android:layout_marginBottom="88dp"
+        android:overScrollMode="never"
+        android:fillViewport="true">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- ══ STEP 1: Data Toko ══════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/layoutStep1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <!-- Airin + Speech Bubble -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="20dp">
+
+                    <ImageView
+                        android:id="@+id/ivAirinStep1"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/menjelaskan"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Airin" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/bg_speech_bubble"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Haii~ Ada 3 langkah kok, ga banyak! 😊 Yuk pelan-pelan kita mulai dari data toko kamu dulu ya!"
+                            android:textSize="13sp"
+                            android:textColor="#1E293B"
+                            android:lineSpacingMultiplier="1.4" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Company Name -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏪  Nama Usaha / Toko"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCompanyName"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCompanyName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Contoh: Warung Barokah"
+                        android:inputType="textCapWords"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Owner Name -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👤  Nama Pemilik"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilName"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Nama lengkap pemilik usaha"
+                        android:inputType="textPersonName|textCapWords"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Address info chip -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_info_chip"
+                    android:padding="12dp"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🧾"
+                        android:textSize="16sp"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Alamat ini akan muncul di struk thermal kamu loh~ Boleh dikosongkan dulu kalau belum tahu!"
+                        android:textSize="12sp"
+                        android:textColor="#0F766E"
+                        android:lineSpacingMultiplier="1.3" />
+
+                </LinearLayout>
+
+                <!-- Address -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📍  Alamat Toko"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginTop="4dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilAddress"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Opsional"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAddress"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Jl. Contoh No. 1, Kota"
+                        android:inputType="textPostalAddress|textCapSentences|textMultiLine"
+                        android:minLines="2"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- ══ STEP 2: Akun ══════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/layoutStep2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+
+                <!-- Airin + Speech Bubble -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="20dp">
+
+                    <ImageView
+                        android:id="@+id/ivAirinStep2"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/tutup_mata"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Airin" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/bg_speech_bubble"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sekarang giliran data akun kamu~ Tenang, untuk bagian password Airin bakal tutup mata kok, ga akan kepo! 🙈"
+                            android:textSize="13sp"
+                            android:textColor="#1E293B"
+                            android:lineSpacingMultiplier="1.4" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- WhatsApp Number -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📱  Nomor WhatsApp"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPhone"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Contoh: 08123456789"
+                        android:inputType="phone"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Email -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📧  Email"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilEmail"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="email@contoh.com"
+                        android:inputType="textEmailAddress"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Password section header with Airin closing eyes -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_warning_card"
+                    android:padding="12dp"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🙈"
+                        android:textSize="22sp"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Airin tutup mata ya~ Password kamu rahasia banget, Airin ga akan kepo kok! 😌"
+                        android:textSize="12sp"
+                        android:textColor="#BE123C"
+                        android:lineSpacingMultiplier="1.3" />
+
+                </LinearLayout>
+
+                <!-- Password -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔒  Password"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPassword"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:endIconMode="password_toggle"
+                    app:endIconTint="@color/text_gray">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Minimal 8 karakter"
+                        android:inputType="textPassword"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Password Confirmation -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔒  Konfirmasi Password"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="6dp" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilPasswordConfirmation"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    app:endIconMode="password_toggle"
+                    app:endIconTint="@color/text_gray">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPasswordConfirmation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Ulangi password kamu"
+                        android:inputType="textPassword"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- ══ STEP 3: Captcha & Submit ══════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/layoutStep3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+
+                <!-- Airin + Speech Bubble -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="20dp">
+
+                    <ImageView
+                        android:id="@+id/ivAirinStep3"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/senang"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Airin" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:background="@drawable/bg_speech_bubble"
+                        android:padding="14dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hampir selesai! Tinggal satu langkah lagi~ Ketik kode captcha di bawah buat konfirmasi bahwa kamu bukan robot! 🤖✅"
+                            android:textSize="13sp"
+                            android:textColor="#1E293B"
+                            android:lineSpacingMultiplier="1.4" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Summary Card -->
+                <LinearLayout
+                    android:id="@+id/layoutSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_feature_chip"
+                    android:padding="16dp"
+                    android:layout_marginBottom="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📋  Ringkasan Pendaftaran"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0F766E"
+                        android:layout_marginBottom="10dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+                        <TextView
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Nama Toko"
+                            android:textSize="12sp"
+                            android:textColor="#64748B" />
+                        <TextView
+                            android:id="@+id/tvSummaryCompany"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#1E293B" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="4dp">
+                        <TextView
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Pemilik"
+                            android:textSize="12sp"
+                            android:textColor="#64748B" />
+                        <TextView
+                            android:id="@+id/tvSummaryName"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#1E293B" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="90dp"
+                            android:layout_height="wrap_content"
+                            android:text="Email"
+                            android:textSize="12sp"
+                            android:textColor="#64748B" />
+                        <TextView
+                            android:id="@+id/tvSummaryEmail"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#1E293B" />
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- Captcha -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔐  Kode Keamanan (Captcha)"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="#1E293B"
+                    android:layout_marginBottom="10dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="10dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#E2E8F0"
+                        app:strokeWidth="1dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <ImageView
+                            android:id="@+id/ivCaptcha"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="fitCenter"
+                            android:padding="4dp" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRefreshCaptcha"
+                        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="8dp"
+                        app:icon="@android:drawable/stat_notify_sync"
+                        app:iconSize="22dp"
+                        app:iconTint="@color/primary"
+                        android:padding="0dp"
+                        app:iconPadding="0dp" />
+
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilCaptcha"
+                    style="@style/Widget.KasirUmkm.TextInputLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etCaptcha"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Ketik kode yang terlihat di gambar"
+                        android:inputType="textCapCharacters|textNoSuggestions"
+                        android:textSize="14sp"
+                        android:textColor="#1E293B"
+                        android:letterSpacing="0.15" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+    </ScrollView>
+
+    <!-- ─── Fixed Bottom Bar ──────────────────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="20dp">
+
+        <!-- Primary action button -->
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Lanjut →"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_button_teal"
+            android:stateListAnimator="@null"
+            android:elevation="2dp" />
+
+        <!-- Progress bar (loading) -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:visibility="gone"
-            android:indeterminateTint="@color/primary"
-            android:layout_marginBottom="@dimen/spacing_lg" />
+            android:layout_marginTop="8dp"
+            android:indeterminateTint="@color/primary" />
 
-        <!-- Login Redirect Link -->
+        <!-- Login link -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="@dimen/spacing_xl">
+            android:layout_marginTop="8dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/lbl_already_have_account"
-                android:textColor="@color/text_gray"
-                android:textSize="@dimen/text_body_medium" />
+                android:text="Udah punya akun?"
+                android:textColor="#94A3B8"
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/tvLoginLink"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_login_now"
-                android:textColor="@color/primary"
-                android:textSize="@dimen/text_body_medium"
+                android:text="  Masuk sekarang"
+                android:textColor="#0EA5A0"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:paddingStart="@dimen/spacing_xs"
-                android:paddingEnd="@dimen/spacing_xs"
                 android:clickable="true"
-                android:focusable="true"/>
+                android:focusable="true" />
+
         </LinearLayout>
 
     </LinearLayout>
-</ScrollView>
+
+</FrameLayout>

@@ -124,7 +124,7 @@ public class OnboardingActivity extends AppCompatActivity {
                     binding.btnNext.setText("Hampir selesai →");
                     break;
                 case 3:
-                    binding.btnNext.setText("Oke oke, janji deh! 🤞");
+                    binding.btnNext.setText("Yuk Mulai 🤞");
                     break;
             }
         }
@@ -189,9 +189,16 @@ public class OnboardingActivity extends AppCompatActivity {
 
     // ─── SharedPreferences ──────────────────────────────────────────────────────
 
+    /**
+     * Saves onboarding completion with version number.
+     * Must match ONBOARDING_VERSION in SplashActivity.
+     */
     private void saveOnboardingDone() {
         SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
-        prefs.edit().putBoolean("onboarding_completed", true).apply();
+        prefs.edit()
+                .putInt("onboarding_version", 1)        // must match SplashActivity.ONBOARDING_VERSION
+                .putBoolean("onboarding_completed", true) // keep for backward compatibility
+                .apply();
     }
 
     // ─── Back press handling ─────────────────────────────────────────────────────
