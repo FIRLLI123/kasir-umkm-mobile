@@ -63,12 +63,13 @@
                     android:background="@color/primary_light"
                     android:padding="24dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="💎"
-                        android:textSize="48sp"
-                        android:layout_marginBottom="12dp" />
+                    <ImageView
+                        android:id="@+id/ivAirinHeader"
+                        android:layout_width="120dp"
+                        android:layout_height="120dp"
+                        android:layout_marginBottom="12dp"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/senang" />
 
                     <TextView
                         android:layout_width="wrap_content"

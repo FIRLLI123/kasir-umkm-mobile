@@ -21,7 +21,9 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityProductBulkBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.journeyapps.barcodescanner.ScanContract;
@@ -386,11 +388,21 @@ public class ProductBulkActivity extends AppCompatActivity {
                         }
 
                         if (failedItemsList.isEmpty()) {
-                            Toast.makeText(ProductBulkActivity.this, "Seluruh produk (" + successCount + ") berhasil disimpan!", Toast.LENGTH_SHORT).show();
-                            finish();
+                            // Semua berhasil — dialog Airin goodjob!
+                            AirinDialog.showSuccess(
+                                    ProductBulkActivity.this,
+                                    "Semua Produk Tersimpan! 🎉",
+                                    successCount + " produk berhasil ditambahkan ke katalog~\nAirin bangga sama kerja keras kamu! 🙌",
+                                    () -> finish()
+                            );
                         } else {
                             adapter.setItems(failedItemsList);
-                            CurrencyHelper.showError(binding.getRoot(), successCount + " produk berhasil disimpan, " + failedCount + " gagal.");
+                            AirinDialog.showWarning(
+                                    ProductBulkActivity.this,
+                                    "Sebagian Berhasil ⚠️",
+                                    successCount + " produk berhasil, " + failedCount + " gagal.\nPeriksa baris yang masih ada error ya~",
+                                    null
+                            );
                         }
 
                     } catch (Exception e) {
@@ -412,7 +424,7 @@ public class ProductBulkActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(), "Tidak ada koneksi internet");
+                AirinDialog.showOffline(ProductBulkActivity.this, null);
             }
         });
     }

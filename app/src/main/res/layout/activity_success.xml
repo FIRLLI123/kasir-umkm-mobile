@@ -130,6 +130,18 @@
             app:iconGravity="textStart"
             app:iconTint="@color/primary" />
 
+        <!-- Bagikan Struk Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShareReceipt"
+            style="@style/Widget.KasirUmkm.Button.Outline"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height_large"
+            android:text="Bagikan Struk"
+            android:layout_marginBottom="@dimen/spacing_md"
+            app:icon="@drawable/ic_share"
+            app:iconGravity="textStart"
+            app:iconTint="@color/primary" />
+
         <!-- Selesai / Transaksi Baru -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNewTransaction"

@@ -5,12 +5,14 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.kasirumkm2.R;
+import com.example.kasirumkm2.adapter.POSCartSheetAdapter;
 import com.example.kasirumkm2.adapter.POSProductAdapter;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
@@ -18,7 +20,9 @@ import com.example.kasirumkm2.data.CartItem;
 import com.example.kasirumkm2.data.Product;
 import com.example.kasirumkm2.databinding.ActivityPosBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -131,8 +135,27 @@ public class POSActivity extends AppCompatActivity {
     }
 
     private void setupToolbar() {
-        binding.btnBack.setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> handleBackWithCart());
         binding.btnClearCart.setOnClickListener(v -> clearCart());
+    }
+
+    /**
+     * Cek keranjang sebelum keluar — kalau ada item, tanya Airin dulu!
+     */
+    private void handleBackWithCart() {
+        if (!cartList.isEmpty()) {
+            AirinDialog.showConfirm(
+                    this,
+                    "Lho, mau keluar? 🤔",
+                    "Masih ada " + cartList.size() + " produk di keranjang yang belum dibayar nih~\nBeneran mau keluar?",
+                    "Ya, keluar deh",
+                    "Eh, lanjut bayar!",
+                    () -> finish(),      // positif = keluar
+                    null                 // negatif = tutup dialog, lanjut
+            );
+        } else {
+            finish();
+        }
     }
 
     private void setupCustomerSelector() {
@@ -250,6 +273,13 @@ public class POSActivity extends AppCompatActivity {
             intent.putExtra("customer_group_id", selectedCustomerGroupId);
             startActivityForResult(intent, REQUEST_CHECKOUT);
         });
+
+        binding.layoutCheckoutPanel.setOnClickListener(v -> {
+            if (!cartList.isEmpty()) {
+                showCartBottomSheet();
+            }
+        });
+
         updateCheckoutPanel();
     }
 
@@ -413,10 +443,19 @@ public class POSActivity extends AppCompatActivity {
 
     private void clearCart() {
         if (cartList.isEmpty()) return;
-        cartList.clear();
-        adapter.setCartState(cartList, selectedCustomerGroupId);
-        updateCheckoutPanel();
-        CurrencyHelper.showToast(this, "Keranjang dibersihkan");
+
+        AirinDialog.showConfirm(this,
+                "Kosongkan Keranjang? 🧐",
+                "Apakah kamu yakin ingin menghapus semua produk di keranjang belanja?",
+                "Ya, Kosongkan",
+                "Batal",
+                () -> {
+                    cartList.clear();
+                    adapter.setCartState(cartList, selectedCustomerGroupId);
+                    updateCheckoutPanel();
+                    CurrencyHelper.showToast(this, "Keranjang berhasil dikosongkan");
+                },
+                null);
     }
 
     private void updateCheckoutPanel() {
@@ -437,6 +476,79 @@ public class POSActivity extends AppCompatActivity {
             binding.btnCheckout.setText("Pilih Customer Dulu");
         } else {
             binding.btnCheckout.setText(totalItems > 0 ? "Bayar (" + totalItems + ")" : "Bayar");
+        }
+    }
+
+    private void showCartBottomSheet() {
+        com.google.android.material.bottomsheet.BottomSheetDialog bottomSheet =
+                new com.google.android.material.bottomsheet.BottomSheetDialog(this);
+
+        View sheetView = getLayoutInflater().inflate(R.layout.layout_pos_cart_sheet, null);
+        bottomSheet.setContentView(sheetView);
+
+        androidx.recyclerview.widget.RecyclerView rvItems = sheetView.findViewById(R.id.rvCartItems);
+        TextView tvSheetTotalItems = sheetView.findViewById(R.id.tvSheetTotalItems);
+        TextView tvSheetTotalPrice = sheetView.findViewById(R.id.tvSheetTotalPrice);
+        com.google.android.material.button.MaterialButton btnSheetCheckout = sheetView.findViewById(R.id.btnSheetCheckout);
+        TextView btnClearAll = sheetView.findViewById(R.id.btnClearAll);
+
+        rvItems.setLayoutManager(new LinearLayoutManager(this));
+        final POSCartSheetAdapter[] sheetAdapter = new POSCartSheetAdapter[1];
+        sheetAdapter[0] = new POSCartSheetAdapter(new POSCartSheetAdapter.OnCartSheetActionListener() {
+            @Override
+            public void onIncrementQty(CartItem item) {
+                incrementCartItem(item.getProduct());
+                sheetAdapter[0].setData(cartList);
+                updateSheetSummary(tvSheetTotalItems, tvSheetTotalPrice, btnSheetCheckout);
+            }
+
+            @Override
+            public void onDecrementQty(CartItem item) {
+                decrementCartItem(item.getProduct());
+                if (cartList.isEmpty()) {
+                    bottomSheet.dismiss();
+                } else {
+                    sheetAdapter[0].setData(cartList);
+                    updateSheetSummary(tvSheetTotalItems, tvSheetTotalPrice, btnSheetCheckout);
+                }
+            }
+        });
+        rvItems.setAdapter(sheetAdapter[0]);
+        sheetAdapter[0].setData(cartList);
+
+        updateSheetSummary(tvSheetTotalItems, tvSheetTotalPrice, btnSheetCheckout);
+
+        btnSheetCheckout.setOnClickListener(v -> {
+            bottomSheet.dismiss();
+            binding.btnCheckout.performClick();
+        });
+
+        btnClearAll.setOnClickListener(v -> {
+            bottomSheet.dismiss();
+            clearCart();
+        });
+
+        bottomSheet.show();
+    }
+
+    private void updateSheetSummary(TextView tvItems, TextView tvPrice, com.google.android.material.button.MaterialButton btnCheckout) {
+        int totalItems = 0;
+        double totalPrice = 0;
+
+        for (CartItem item : cartList) {
+            totalItems += item.getQty();
+            totalPrice += item.getSubtotal();
+        }
+
+        tvItems.setText(totalItems + " Item");
+        tvPrice.setText(CurrencyHelper.formatRupiah(totalPrice));
+
+        boolean customerSelected = selectedCustomerId > 0;
+        btnCheckout.setEnabled(totalItems > 0 && customerSelected);
+        if (totalItems > 0 && !customerSelected) {
+            btnCheckout.setText("Pilih Customer Dulu");
+        } else {
+            btnCheckout.setText(totalItems > 0 ? "Bayar (" + totalItems + ")" : "Bayar");
         }
     }
 
@@ -650,6 +762,11 @@ public class POSActivity extends AppCompatActivity {
     private boolean isBarcodeMatch(String barcode, String productCode) {
         if (barcode == null || productCode == null) return false;
         return barcode.trim().equalsIgnoreCase(productCode.trim());
+    }
+
+    @Override
+    public void onBackPressed() {
+        handleBackWithCart();
     }
 
     @Override

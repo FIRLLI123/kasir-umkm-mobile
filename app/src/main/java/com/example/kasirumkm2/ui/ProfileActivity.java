@@ -12,6 +12,7 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityProfileBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -129,10 +130,11 @@ public class ProfileActivity extends AppCompatActivity {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 binding.btnChangePassword.setEnabled(true);
                 if (response.isSuccessful()) {
-                    Toast.makeText(ProfileActivity.this, "Password berhasil diubah", Toast.LENGTH_SHORT).show();
-                    binding.etOldPassword.setText("");
-                    binding.etNewPassword.setText("");
-                    binding.etConfirmNewPassword.setText("");
+                    AirinDialog.showSuccess(ProfileActivity.this, "Yeay! Berhasil! 🎉", "Password kamu berhasil diubah! Jangan sampai lupa ya password barunya~", () -> {
+                        binding.etOldPassword.setText("");
+                        binding.etNewPassword.setText("");
+                        binding.etConfirmNewPassword.setText("");
+                    });
                 } else {
                     String errorMsg = "Gagal mengubah password";
                     try {
@@ -141,14 +143,14 @@ public class ProfileActivity extends AppCompatActivity {
                             if (err.has("message")) errorMsg = err.get("message").getAsString();
                         }
                     } catch (Exception e) {}
-                    Toast.makeText(ProfileActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    AirinDialog.showError(ProfileActivity.this, "Gagal Mengubah Password 😢", errorMsg, null);
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 binding.btnChangePassword.setEnabled(true);
-                Toast.makeText(ProfileActivity.this, "Koneksi gagal: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                AirinDialog.showOffline(ProfileActivity.this, null);
             }
         });
     }

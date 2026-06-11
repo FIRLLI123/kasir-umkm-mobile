@@ -347,6 +347,7 @@ public class SalesHistoryActivity extends AppCompatActivity {
         LinearLayout layoutItems = view.findViewById(R.id.layoutSheetItems);
         View layoutCashDetails = view.findViewById(R.id.layoutSheetCashDetails);
         View btnReprint = view.findViewById(R.id.btnSheetReprint);
+        View btnShare = view.findViewById(R.id.btnSheetShare);
         MaterialButton btnVoid = view.findViewById(R.id.btnSheetVoid);
         LinearLayout layoutVoidInfo = view.findViewById(R.id.layoutVoidInfo);
         TextView tvVoidReason = view.findViewById(R.id.tvVoidReason);
@@ -559,6 +560,16 @@ public class SalesHistoryActivity extends AppCompatActivity {
                 printReceipt(fullSaleData[0]);
             } else {
                 fetchAndPrintReceipt(saleId);
+            }
+            dialog.dismiss();
+        });
+
+        // Share Struk action listener
+        btnShare.setOnClickListener(v -> {
+            if (fullSaleData[0] != null) {
+                shareReceiptText(fullSaleData[0]);
+            } else {
+                fetchAndShareReceipt(saleId);
             }
             dialog.dismiss();
         });
@@ -934,6 +945,48 @@ public class SalesHistoryActivity extends AppCompatActivity {
                     });
                 } else {
                     loadingDialog.dismiss();
+                    Toast.makeText(SalesHistoryActivity.this, "Gagal mengambil detail transaksi", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                loadingDialog.dismiss();
+                Toast.makeText(SalesHistoryActivity.this, "Koneksi gagal: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void shareReceiptText(JsonObject saleObj) {
+        String receiptText = com.example.kasirumkm2.printer.PrinterFormatter.buildReceiptShareText(saleObj);
+        String invoiceNo = saleObj.has("invoice_no") ? saleObj.get("invoice_no").getAsString() : "";
+        
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Struk Transaksi " + invoiceNo);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, receiptText);
+        
+        startActivity(Intent.createChooser(shareIntent, "Bagikan Struk via"));
+    }
+
+    private void fetchAndShareReceipt(int saleId) {
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        progressBar.setPadding(32, 32, 32, 32);
+        AlertDialog loadingDialog = new AlertDialog.Builder(this)
+                .setView(progressBar)
+                .setMessage("Memuat detail transaksi...")
+                .setCancelable(false)
+                .create();
+        loadingDialog.show();
+        
+        apiService.getSaleDetail(saleId).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                loadingDialog.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
+                    JsonObject saleObj = response.body().getAsJsonObject("data");
+                    shareReceiptText(saleObj);
+                } else {
                     Toast.makeText(SalesHistoryActivity.this, "Gagal mengambil detail transaksi", Toast.LENGTH_SHORT).show();
                 }
             }

@@ -374,6 +374,7 @@ public class HomeFragment extends Fragment {
         LinearLayout layoutItems = view.findViewById(R.id.layoutSheetItems);
         View layoutCashDetails = view.findViewById(R.id.layoutSheetCashDetails);
         View btnReprint = view.findViewById(R.id.btnSheetReprint);
+        View btnShare = view.findViewById(R.id.btnSheetShare);
 
         // Set basic header details immediately from list item
         String invoiceNo = saleHeader.has("invoice_no") ? saleHeader.get("invoice_no").getAsString() : "-";
@@ -561,6 +562,16 @@ public class HomeFragment extends Fragment {
                 printReceipt(fullSaleData[0]);
             } else {
                 fetchAndPrintReceipt(saleId);
+            }
+            dialog.dismiss();
+        });
+
+        // Share Struk action listener
+        btnShare.setOnClickListener(v -> {
+            if (fullSaleData[0] != null) {
+                shareReceiptText(fullSaleData[0]);
+            } else {
+                fetchAndShareReceipt(saleId);
             }
             dialog.dismiss();
         });
@@ -753,6 +764,55 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    private void shareReceiptText(JsonObject saleObj) {
+        if (!isAdded()) return;
+        String receiptText = com.example.kasirumkm2.printer.PrinterFormatter.buildReceiptShareText(saleObj);
+        String invoiceNo = saleObj.has("invoice_no") ? saleObj.get("invoice_no").getAsString() : "";
+        
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Struk Transaksi " + invoiceNo);
+        shareIntent.putExtra(Intent.EXTRA_TEXT, receiptText);
+        
+        startActivity(Intent.createChooser(shareIntent, "Bagikan Struk via"));
+    }
+
+    private void fetchAndShareReceipt(int saleId) {
+        if (!isAdded() || getActivity() == null) return;
+        
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(requireContext());
+        progressBar.setPadding(32, 32, 32, 32);
+        androidx.appcompat.app.AlertDialog loadingDialog = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setView(progressBar)
+                .setMessage("Memuat detail transaksi...")
+                .setCancelable(false)
+                .create();
+        loadingDialog.show();
+        
+        apiService.getSaleDetail(saleId).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && getActivity() != null) {
+                    loadingDialog.dismiss();
+                    if (response.isSuccessful() && response.body() != null) {
+                        JsonObject saleObj = response.body().getAsJsonObject("data");
+                        shareReceiptText(saleObj);
+                    } else {
+                        Toast.makeText(requireContext(), "Gagal mengambil detail transaksi", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                if (isAdded() && getActivity() != null) {
+                    loadingDialog.dismiss();
+                    Toast.makeText(requireContext(), "Koneksi gagal: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+    
     @Override
     public void onDestroyView() {
         super.onDestroyView();

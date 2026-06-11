@@ -18,6 +18,7 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityPaymentBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonObject;
 
@@ -89,6 +90,7 @@ public class PaymentActivity extends AppCompatActivity {
         }
 
         binding.btnCheckStatus.setOnClickListener(v -> checkPaymentStatus(true));
+        binding.btnDownloadQris.setOnClickListener(v -> checkStoragePermissionAndDownload());
     }
 
     private void startTimer() {
@@ -294,6 +296,96 @@ public class PaymentActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    private void checkStoragePermissionAndDownload() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            // Android Q+ doesn't need write storage permission for MediaStore writes
+            downloadQrisImage();
+        } else {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                downloadQrisImage();
+            } else {
+                androidx.core.app.ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 102);
+            }
+        }
+    }
+
+    private void downloadQrisImage() {
+        if (qrisImage == null || !qrisImage.startsWith("data:image")) {
+            Toast.makeText(this, "Gambar QRIS tidak tersedia", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            String base64Data = qrisImage.substring(qrisImage.indexOf(",") + 1);
+            byte[] decodedString = Base64.decode(base64Data, Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            if (bitmap == null) {
+                Toast.makeText(this, "Format gambar QRIS tidak valid", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String fileName = "QRIS_TanyaKasir_" + transactionId + "_" + System.currentTimeMillis() + ".png";
+
+            boolean success = false;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                android.content.ContentValues values = new android.content.ContentValues();
+                values.put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, fileName);
+                values.put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png");
+                values.put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/TanyaKasir");
+                values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 1);
+
+                android.content.ContentResolver resolver = getContentResolver();
+                android.net.Uri uri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+                if (uri != null) {
+                    try (java.io.OutputStream out = resolver.openOutputStream(uri)) {
+                        if (out != null) {
+                            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                            success = true;
+                        }
+                    }
+                    values.clear();
+                    values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0);
+                    resolver.update(uri, values, null, null);
+                }
+            } else {
+                java.io.File picturesDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_PICTURES);
+                java.io.File myDir = new java.io.File(picturesDir, "TanyaKasir");
+                if (!myDir.exists()) {
+                    myDir.mkdirs();
+                }
+                java.io.File file = new java.io.File(myDir, fileName);
+                try (java.io.FileOutputStream out = new java.io.FileOutputStream(file)) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                    android.media.MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, new String[]{"image/png"}, null);
+                    success = true;
+                }
+            }
+
+            if (success) {
+                AirinDialog.showSuccess(this, "Download Berhasil! 🎉", "QRIS berhasil disimpan ke folder Pictures/TanyaKasir di HP kamu. Silakan scan di e-wallet/M-banking ya!", null);
+            } else {
+                AirinDialog.showError(this, "Gagal Mengunduh", "Terjadi kesalahan saat menyimpan gambar QRIS ke penyimpanan.", null);
+            }
+        } catch (Exception e) {
+            AirinDialog.showError(this, "Gagal Mengunduh", "Detail error: " + e.getMessage(), null);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @androidx.annotation.NonNull String[] permissions, @androidx.annotation.NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 102) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                downloadQrisImage();
+            } else {
+                Toast.makeText(this, "Izin penyimpanan ditolak, gagal menyimpan QRIS", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void showSuccessDialog() {

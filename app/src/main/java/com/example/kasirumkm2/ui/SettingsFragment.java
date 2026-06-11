@@ -18,6 +18,7 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.FragmentSettingsBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonObject;
 
@@ -225,17 +226,7 @@ public class SettingsFragment extends Fragment {
             }
         }, start, end, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle("Informasi Aplikasi")
-                .setMessage(spannable)
-                .setPositiveButton("OK", null)
-                .show();
-
-        // Make the link clickable
-        android.widget.TextView msgView = dialog.findViewById(android.R.id.message);
-        if (msgView != null) {
-            msgView.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
-        }
+        AirinDialog.showInfo(requireContext(), "Informasi Aplikasi ℹ️", spannable, null);
     }
 
     private boolean checkBluetoothPermissions() {
@@ -455,12 +446,13 @@ public class SettingsFragment extends Fragment {
       }
 
     private void confirmLogout() {
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Keluar Aplikasi")
-                .setMessage("Apakah Anda yakin ingin keluar dari aplikasi?")
-                .setPositiveButton("Keluar", (dialog, which) -> executeLogout())
-                .setNegativeButton("Batal", null)
-                .show();
+        AirinDialog.showConfirm(requireContext(),
+                "Keluar Aplikasi? 🥺",
+                "Apakah kamu yakin ingin keluar dari aplikasi?",
+                "Ya, Keluar",
+                "Batal",
+                this::executeLogout,
+                null);
     }
 
     private void executeLogout() {

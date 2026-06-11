@@ -13,6 +13,7 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityUserBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -74,15 +75,16 @@ public class UserActivity extends AppCompatActivity {
     }
 
     private void showTrialBlockDialog(String featureName) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Fitur Premium 💎")
-                .setMessage("Fitur '" + featureName + "' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nSilakan aktifkan paket langganan Anda untuk membuka semua fitur premium.")
-                .setPositiveButton("Aktifkan Premium", (dialog, which) -> {
+        AirinDialog.showConfirm(this,
+                "Fitur Premium 💎",
+                "Fitur '" + featureName + "' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nYuk aktifkan paket premium kamu sekarang!",
+                "Aktifkan Premium",
+                "Batal",
+                () -> {
                     Intent intent = new Intent(this, SubscriptionActivity.class);
                     startActivity(intent);
-                })
-                .setNegativeButton("Batal", null)
-                .show();
+                },
+                null);
     }
 
     private void setupSwipeRefresh() {

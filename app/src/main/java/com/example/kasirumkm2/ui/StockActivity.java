@@ -14,6 +14,7 @@ import com.example.kasirumkm2.adapter.StockAdapter;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityStockBinding;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.gson.JsonArray;
@@ -41,6 +42,7 @@ public class StockActivity extends AppCompatActivity {
     private final List<JsonObject> allStocks = new ArrayList<>();
     private boolean isDateMode = false;
     private String selectedDate = null;
+    private boolean hasShownLowStockWarning = false;
 
     // Pagination states
     private int currentPage = 1;
@@ -100,15 +102,16 @@ public class StockActivity extends AppCompatActivity {
         binding.btnBulkStockIn.setOnClickListener(v -> {
             com.example.kasirumkm2.session.SessionManager sessionManager = new com.example.kasirumkm2.session.SessionManager(this);
             if ("trial".equalsIgnoreCase(sessionManager.getSubscriptionStatus())) {
-                new androidx.appcompat.app.AlertDialog.Builder(this)
-                        .setTitle("Fitur Premium 💎")
-                        .setMessage("Fitur 'Tambah Stok Massal' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nSilakan aktifkan paket langganan Anda untuk membuka semua fitur premium.")
-                        .setPositiveButton("Aktifkan Premium", (dialog, which) -> {
+                AirinDialog.showConfirm(this,
+                        "Fitur Premium 💎",
+                        "Fitur 'Tambah Stok Massal' hanya tersedia untuk pelanggan paket Premium dan tidak dapat diakses pada paket Trial.\n\nYuk aktifkan paket premium kamu sekarang!",
+                        "Aktifkan Premium",
+                        "Batal",
+                        () -> {
                             Intent intent = new Intent(this, SubscriptionActivity.class);
                             startActivity(intent);
-                        })
-                        .setNegativeButton("Batal", null)
-                        .show();
+                        },
+                        null);
                 return;
             }
             Intent intent = new Intent(StockActivity.this, StockBulkInActivity.class);
@@ -331,6 +334,8 @@ public class StockActivity extends AppCompatActivity {
         int totalProducts = allStocks.size();
         int totalStock = 0;
         int lowStock = 0;
+        int criticalStockCount = 0;
+        StringBuilder criticalStockNames = new StringBuilder();
 
         for (JsonObject item : allStocks) {
             int stock = 0;
@@ -349,11 +354,32 @@ public class StockActivity extends AppCompatActivity {
 
             totalStock += stock;
             if (stock <= 10) lowStock++;
+
+            if (stock < 5) {
+                criticalStockCount++;
+                if (criticalStockCount <= 3) {
+                    String name = item.has("product_name") ? item.get("product_name").getAsString() : "Produk";
+                    criticalStockNames.append("• ").append(name).append(" (Stok: ").append(stock).append(")\n");
+                }
+            }
         }
 
         binding.tvTotalProducts.setText(String.valueOf(totalProducts));
         binding.tvTotalStock.setText(String.valueOf(totalStock));
         binding.tvLowStock.setText(String.valueOf(lowStock));
+
+        // Trigger Airin Angry Dialog if stock is less than 5
+        if (criticalStockCount > 0 && !hasShownLowStockWarning) {
+            hasShownLowStockWarning = true;
+            String msg = "Hih! Ada " + criticalStockCount + " produk yang stoknya tipis banget (kurang dari 5)!\n\n" +
+                    criticalStockNames.toString() +
+                    (criticalStockCount > 3 ? "...dan produk lainnya.\n\n" : "\n") +
+                    "Cepat tambah stoknya sekarang, jangan sampai pelanggan kecewa ya! Airin ga mau tau! 😡💢";
+
+            if (!isFinishing() && !isDestroyed()) {
+                AirinDialog.showAngry(this, "Stok Mau Habis! 😡", msg, null);
+            }
+        }
     }
 
     private void showEmpty(boolean empty) {

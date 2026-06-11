@@ -12,6 +12,7 @@ import com.example.kasirumkm2.R;
 import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityUserFormBinding;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -268,8 +269,7 @@ public class UserFormActivity extends AppCompatActivity {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
-                    CurrencyHelper.showToast(UserFormActivity.this, "User berhasil disimpan");
-                    finish();
+                    AirinDialog.showSuccess(UserFormActivity.this, "Yeay, Berhasil! 🎉", "Data karyawan berhasil disimpan ya!", () -> finish());
                 } else {
                     String errorMsg = "Gagal menyimpan user";
                     try {
@@ -278,14 +278,14 @@ public class UserFormActivity extends AppCompatActivity {
                             if (err.has("message")) errorMsg = err.get("message").getAsString();
                         }
                     } catch (Exception e) {}
-                    CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    AirinDialog.showError(UserFormActivity.this, "Gagal Menyimpan 😢", errorMsg, null);
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+                AirinDialog.showOffline(UserFormActivity.this, null);
             }
         };
 
@@ -297,12 +297,13 @@ public class UserFormActivity extends AppCompatActivity {
     }
 
     private void confirmDeactivate() {
-        new AlertDialog.Builder(this)
-                .setTitle("Nonaktifkan Pengguna")
-                .setMessage("Apakah Anda yakin ingin menonaktifkan pengguna ini?")
-                .setPositiveButton("Nonaktifkan", (dialog, which) -> executeDeactivate())
-                .setNegativeButton("Batal", null)
-                .show();
+        AirinDialog.showConfirm(this,
+                "Nonaktifkan Karyawan? 🧐",
+                "Apakah kamu yakin ingin menonaktifkan karyawan ini? Dia tidak akan bisa mengakses aplikasi lagi.",
+                "Ya, Nonaktifkan",
+                "Batal",
+                this::executeDeactivate,
+                null);
     }
 
     private void executeDeactivate() {
@@ -313,8 +314,7 @@ public class UserFormActivity extends AppCompatActivity {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
-                    CurrencyHelper.showToast(UserFormActivity.this, "Pengguna dinonaktifkan");
-                    finish();
+                    AirinDialog.showSuccess(UserFormActivity.this, "Berhasil! 🗑️", "Karyawan telah berhasil dinonaktifkan.", () -> finish());
                 } else {
                     String errorMsg = "Gagal menonaktifkan pengguna";
                     try {
@@ -323,14 +323,14 @@ public class UserFormActivity extends AppCompatActivity {
                             if (err.has("message")) errorMsg = err.get("message").getAsString();
                         }
                     } catch (Exception e) {}
-                    CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    AirinDialog.showError(UserFormActivity.this, "Gagal Menonaktifkan 😢", errorMsg, null);
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+                AirinDialog.showOffline(UserFormActivity.this, null);
             }
         });
     }

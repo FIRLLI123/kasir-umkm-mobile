@@ -272,6 +272,23 @@
         android:insetBottom="0dp"
         android:insetTop="0dp" />
 
+    <!-- Bagikan Struk Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSheetShare"
+        style="@style/Widget.KasirUmkm.Button.Outline"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Bagikan Struk"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        app:cornerRadius="10dp"
+        android:insetBottom="0dp"
+        android:insetTop="0dp"
+        android:layout_marginTop="8dp"
+        app:icon="@drawable/ic_share"
+        app:iconGravity="textStart"
+        app:iconTint="@color/primary" />
+
     <!-- Void Info Section (shown only for voided transactions) -->
     <LinearLayout
         android:id="@+id/layoutVoidInfo"

@@ -182,6 +182,15 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownloadQris"
+                style="@style/Widget.KasirUmkm.Button.Outline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Simpan ke Galeri / Download QRIS"
+                app:icon="@android:drawable/ic_menu_save" />
+
             <!-- Countdown Timer Info -->
             <TextView
                 android:layout_width="wrap_content"

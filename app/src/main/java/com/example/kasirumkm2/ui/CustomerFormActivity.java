@@ -14,7 +14,9 @@ import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.data.Customer;
 import com.example.kasirumkm2.data.CustomerGroup;
 import com.example.kasirumkm2.databinding.ActivityCustomerFormBinding;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -215,9 +217,13 @@ public class CustomerFormActivity extends AppCompatActivity {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 setLoading(false);
                 if (response.isSuccessful()) {
-                    CurrencyHelper.showToast(CustomerFormActivity.this,
-                            getString(R.string.berhasil_disimpan));
-                    finish();
+                    String action = isEditMode ? "diperbarui" : "ditambahkan";
+                    AirinDialog.showSuccess(
+                            CustomerFormActivity.this,
+                            "Berhasil " + (isEditMode ? "Update" : "Tambah") + " Customer! 🎉",
+                            "Data customer berhasil " + action + "~\nAirin senang bisa bantu! 😊",
+                            () -> finish()
+                    );
                 } else {
                     String errorMsg = "Gagal menyimpan";
                     try {
@@ -227,14 +233,19 @@ public class CustomerFormActivity extends AppCompatActivity {
                             if (err.has("message")) errorMsg = err.get("message").getAsString();
                         }
                     } catch (Exception e) {}
-                    CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                    AirinDialog.showError(
+                            CustomerFormActivity.this,
+                            "Gagal Menyimpan 😢",
+                            errorMsg + "\nCoba lagi ya~",
+                            null
+                    );
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
                 setLoading(false);
-                CurrencyHelper.showError(binding.getRoot(), getString(R.string.tidak_ada_koneksi));
+                AirinDialog.showOffline(CustomerFormActivity.this, null);
             }
         };
 

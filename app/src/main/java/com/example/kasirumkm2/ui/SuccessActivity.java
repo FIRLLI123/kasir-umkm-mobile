@@ -7,7 +7,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.kasirumkm2.databinding.ActivitySuccessBinding;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
+
 
 public class SuccessActivity extends AppCompatActivity {
 
@@ -35,6 +37,22 @@ public class SuccessActivity extends AppCompatActivity {
 
         displayDetails();
         setupListeners();
+
+        // Celebration dialog Airin Good Job!
+        showCelebration();
+    }
+
+    /**
+     * Dialog perayaan Airin Good Job setelah transaksi berhasil.
+     * Muncul otomatis saat screen dibuka.
+     */
+    private void showCelebration() {
+        AirinDialog.showSuccess(
+                this,
+                "Good Job! Transaksi Berhasil! 🎉",
+                "Kece banget~ Transaksi berjalan lancar!\nAirin bangga sama kamu! 🙌",
+                null
+        );
     }
 
     private void displayDetails() {
@@ -47,6 +65,7 @@ public class SuccessActivity extends AppCompatActivity {
 
     private void setupListeners() {
         binding.btnPrintReceipt.setOnClickListener(v -> printReceipt());
+        binding.btnShareReceipt.setOnClickListener(v -> shareReceipt());
         binding.btnNewTransaction.setOnClickListener(v -> finish());
         binding.btnMainMenu.setOnClickListener(v -> {
             Intent intent = new Intent(SuccessActivity.this, com.example.kasirumkm2.MainActivity.class);
@@ -111,6 +130,47 @@ public class SuccessActivity extends AppCompatActivity {
                     });
                 } else {
                     loadingDialog.dismiss();
+                    Toast.makeText(SuccessActivity.this, "Gagal mengambil data struk", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<com.google.gson.JsonObject> call, Throwable t) {
+                loadingDialog.dismiss();
+                Toast.makeText(SuccessActivity.this, "Koneksi gagal: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void shareReceipt() {
+        // Custom progress loader
+        android.widget.ProgressBar progressBar = new android.widget.ProgressBar(this);
+        progressBar.setPadding(32, 32, 32, 32);
+        androidx.appcompat.app.AlertDialog loadingDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(progressBar)
+                .setMessage("Memuat detail transaksi...")
+                .setCancelable(false)
+                .create();
+        loadingDialog.show();
+        
+        com.example.kasirumkm2.api.ApiService apiService = com.example.kasirumkm2.api.ApiClient.getApiService(this);
+        apiService.getSaleDetail(saleId).enqueue(new retrofit2.Callback<com.google.gson.JsonObject>() {
+            @Override
+            public void onResponse(retrofit2.Call<com.google.gson.JsonObject> call, retrofit2.Response<com.google.gson.JsonObject> response) {
+                loadingDialog.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
+                    com.google.gson.JsonObject body = response.body();
+                    com.google.gson.JsonObject saleObj = body.getAsJsonObject("data");
+                    
+                    String receiptText = com.example.kasirumkm2.printer.PrinterFormatter.buildReceiptShareText(saleObj);
+                    
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("text/plain");
+                    shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Struk Transaksi " + invoiceNo);
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, receiptText);
+                    
+                    startActivity(Intent.createChooser(shareIntent, "Bagikan Struk via"));
+                } else {
                     Toast.makeText(SuccessActivity.this, "Gagal mengambil data struk", Toast.LENGTH_SHORT).show();
                 }
             }

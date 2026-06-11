@@ -31,6 +31,10 @@ public class SubscriptionActivity extends AppCompatActivity {
     private SubscriptionPlanAdapter adapter;
     private SessionManager sessionManager;
 
+    private int currentImageIndex = 0;
+    private final android.os.Handler animationHandler = new android.os.Handler();
+    private Runnable animationRunnable;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +83,8 @@ public class SubscriptionActivity extends AppCompatActivity {
         updateSubtitleText();
         syncSubscriptionStatus();
         loadPlans();
+
+        startAirinSlideshow();
     }
 
     private void updateSubtitleText() {
@@ -322,5 +328,61 @@ public class SubscriptionActivity extends AppCompatActivity {
     private void setLoading(boolean loading) {
         binding.progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         binding.rvPlans.setVisibility(loading ? View.GONE : View.VISIBLE);
+    }
+
+    private void startAirinSlideshow() {
+        final int[] drawables = {
+            R.drawable.bingung,
+            R.drawable.goodjob,
+            R.drawable.kaget,
+            R.drawable.marah,
+            R.drawable.menjelaskan,
+            R.drawable.ngantuk,
+            R.drawable.sedih,
+            R.drawable.sedih_error,
+            R.drawable.senang,
+            R.drawable.tutup_mata,
+            R.drawable.welcome
+        };
+
+        animationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (binding.ivAirinHeader == null) return;
+
+                // Flip Out (rotate Y to 90 degrees)
+                binding.ivAirinHeader.animate()
+                        .rotationY(90f)
+                        .setDuration(250)
+                        .withEndAction(() -> {
+                            // Update resource
+                            currentImageIndex = (currentImageIndex + 1) % drawables.length;
+                            binding.ivAirinHeader.setImageResource(drawables[currentImageIndex]);
+
+                            // Set starting angle for Flip In (-90 degrees)
+                            binding.ivAirinHeader.setRotationY(-90f);
+
+                            // Flip In (rotate Y to 0 degrees)
+                            binding.ivAirinHeader.animate()
+                                    .rotationY(0f)
+                                    .setDuration(250)
+                                    .start();
+                        })
+                        .start();
+
+                // Repeat every 1.5 seconds (1000ms delay + 500ms animation)
+                animationHandler.postDelayed(this, 1500);
+            }
+        };
+
+        animationHandler.postDelayed(animationRunnable, 1500);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (animationHandler != null && animationRunnable != null) {
+            animationHandler.removeCallbacks(animationRunnable);
+        }
+        super.onDestroy();
     }
 }
