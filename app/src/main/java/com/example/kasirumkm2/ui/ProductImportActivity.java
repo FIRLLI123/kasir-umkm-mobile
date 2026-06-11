@@ -29,6 +29,7 @@ import com.example.kasirumkm2.api.ApiClient;
 import com.example.kasirumkm2.api.ApiService;
 import com.example.kasirumkm2.databinding.ActivityProductImportBinding;
 import com.example.kasirumkm2.session.SessionManager;
+import com.example.kasirumkm2.utils.AirinDialog;
 import com.example.kasirumkm2.utils.CurrencyHelper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -309,7 +310,12 @@ public class ProductImportActivity extends AppCompatActivity {
         // Validate file extension
         String extension = getFileExtension(selectedFileName);
         if (!"xlsx".equalsIgnoreCase(extension) && !"xls".equalsIgnoreCase(extension) && !"csv".equalsIgnoreCase(extension)) {
-            CurrencyHelper.showError(binding.getRoot(), "Format file tidak didukung! Gunakan format .xlsx atau .csv");
+            AirinDialog.showWarning(
+                    ProductImportActivity.this,
+                    "Format File Salah 📄",
+                    "Format file tidak didukung!\nGunakan format .xlsx atau .csv ya~",
+                    null
+            );
             return;
         }
 
@@ -355,10 +361,20 @@ public class ProductImportActivity extends AppCompatActivity {
                             if (resObj.has("data")) {
                                 parseImportResponse(resObj.getAsJsonObject("data"));
                             } else {
-                                CurrencyHelper.showError(binding.getRoot(), "Respon server tidak memiliki data hasil");
+                                AirinDialog.showError(
+                                        ProductImportActivity.this,
+                                        "Ups, Respon Aneh 😵",
+                                        "Respon server tidak memiliki data hasil.",
+                                        null
+                                );
                             }
                         } catch (Exception e) {
-                            CurrencyHelper.showError(binding.getRoot(), "Gagal mengurai respon server: " + e.getMessage());
+                            AirinDialog.showError(
+                                    ProductImportActivity.this,
+                                    "Ups, Ada Masalah 😵",
+                                    "Gagal mengurai respon server:\n" + e.getMessage(),
+                                    null
+                            );
                         }
                     } else {
                         String errorMsg = "Gagal memproses import";
@@ -368,7 +384,12 @@ public class ProductImportActivity extends AppCompatActivity {
                                 if (err.has("message")) errorMsg = err.get("message").getAsString();
                             }
                         } catch (Exception e) {}
-                        CurrencyHelper.showError(binding.getRoot(), errorMsg);
+                        AirinDialog.showError(
+                                ProductImportActivity.this,
+                                "Import Gagal 😢",
+                                errorMsg,
+                                null
+                        );
                     }
                 }
 
@@ -379,13 +400,18 @@ public class ProductImportActivity extends AppCompatActivity {
                     try {
                         tempFile.delete();
                     } catch (Exception e) {}
-                    CurrencyHelper.showError(binding.getRoot(), "Tidak ada koneksi: " + t.getMessage());
+                    AirinDialog.showOffline(ProductImportActivity.this, null);
                 }
             });
 
         } catch (IOException e) {
             setLoading(false);
-            CurrencyHelper.showError(binding.getRoot(), "Gagal membaca file: " + e.getMessage());
+            AirinDialog.showError(
+                    ProductImportActivity.this,
+                    "File Tidak Bisa Dibaca 📂",
+                    "Gagal membaca file:\n" + e.getMessage(),
+                    null
+            );
         }
     }
 
@@ -460,11 +486,39 @@ public class ProductImportActivity extends AppCompatActivity {
             }
 
             if (failed == 0 && total > 0) {
-                Toast.makeText(this, "Seluruh data (" + success + ") berhasil diimport!", Toast.LENGTH_LONG).show();
+                // Semua berhasil
+                String modeLabel = "create_products".equals(currentMode) ? "produk baru" : "stok produk";
+                AirinDialog.showSuccess(
+                        ProductImportActivity.this,
+                        "Import Berhasil! 🎉",
+                        success + " " + modeLabel + " berhasil diimport ke sistem~\nAirin senang banget! 🙌",
+                        null
+                );
+            } else if (success > 0 && failed > 0) {
+                // Sebagian berhasil
+                AirinDialog.showWarning(
+                        ProductImportActivity.this,
+                        "Sebagian Berhasil ⚠️",
+                        success + " data berhasil, " + failed + " data gagal.\nPeriksa daftar error di bawah ya~",
+                        null
+                );
+            } else if (failed > 0 && success == 0) {
+                // Semua gagal
+                AirinDialog.showError(
+                        ProductImportActivity.this,
+                        "Import Gagal 😢",
+                        "Semua " + failed + " data gagal diimport.\nPeriksa format file dan coba lagi ya~",
+                        null
+                );
             }
 
         } catch (Exception e) {
-            Toast.makeText(this, "Gagal memproses hasil import: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            AirinDialog.showError(
+                    ProductImportActivity.this,
+                    "Ups, Ada Masalah 😵",
+                    "Gagal memproses hasil import:\n" + e.getMessage(),
+                    null
+            );
         }
     }
 
